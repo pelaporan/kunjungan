@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kunjungan RS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .year-2022 { background-color: #eff6ff; }
+        .year-2025 { background-color: #f0fdf4; }
+        
+        .loading { 
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-2 border-blue-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Dashboard Kunjungan RS</h1>
+                    <p class="text-sm text-gray-600 mt-2">Data Real-time dari Google Sheets - Tahun 2022 hingga Terbaru</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+                        <span class="inline-block w-3 h-3 bg-blue-200 rounded mr-2"></span>Data Historis
+                        <span class="inline-block w-3 h-3 bg-green-200 rounded mr-2 ml-4"></span>Data Terbaru
+                    </div>
+                    <button onclick="refreshAllData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg">
+                        <span id="refresh-text">🔄 Refresh Data</span>
+                        <span id="refresh-loading" class="loading hidden ml-2"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button onclick="showTab('rekap')" class="tab-button active py-4 px-2 border-b-3 border-blue-600 font-semibold text-sm text-blue-600 transition-all duration-200">
+                    📊 Rekap Gabungan
+                </button>
+                <button onclick="showTab('poliklinik')" class="tab-button py-4 px-2 border-b-3 border-transparent font-semibold text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-all duration-200">
+                    🏥 Poliklinik
+                </button>
+                <button onclick="showTab('mcu')" class="tab-button py-4 px-2 border-b-3 border-transparent font-semibold text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-all duration-200">
+                    🔬 MCU
+                </button>
+                <button onclick="showTab('igd')" class="tab-button py-4 px-2 border-b-3 border-transparent font-semibold text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-all duration-200">
+                    🚨 IGD
+                </button>
+                <button onclick="showTab('rawat-inap')" class="tab-button py-4 px-2 border-b-3 border-transparent font-semibold text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-all duration-200">
+                    🛏️ Rawat Inap
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Tab: Rekap Gabungan -->
+        <div id="rekap" class="tab-content active">
+            <!-- Filter Section -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 px-8 py-4">
+                    <h3 class="text-xl font-bold text-white">🔍 Filter Data</h3>
+                    <p class="text-indigo-100 mt-1">Filter data berdasarkan kriteria yang diinginkan</p>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Date Range Filter -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                            <input type="date" id="start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Akhir</label>
+                            <input type="date" id="end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- Month Filter -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
+                            <select id="month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Year Filter -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
+                            <select id="year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Tahun</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Insurance Filter -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
+                            <select id="insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Jaminan</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Service Filter -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Layanan</label>
+                            <select id="service-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Layanan</option>
+                                <option value="Poliklinik">Poliklinik</option>
+                                <option value="MCU">MCU</option>
+                                <option value="IGD">IGD</option>
+                                <option value="RI">Rawat Inap</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Gender Filter -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Kelamin</label>
+                            <select id="gender-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Laki-laki + Perempuan</option>
+                                <option value="L">Laki-laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter Buttons -->
+                        <div class="flex items-end space-x-2">
+                            <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex-1">
+                                🔍 Terapkan Filter
+                            </button>
+                            <button onclick="resetFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                                🔄 Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Yearly Trend Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-4">
+                        <h3 class="text-xl font-bold text-white">📈 Tren Kunjungan per Tahun</h3>
+                        <p class="text-green-100 mt-1">Grafik perkembangan kunjungan dari tahun ke tahun</p>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="yearlyChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Service Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-purple-800 px-6 py-4">
+                        <h3 class="text-xl font-bold text-white">🥧 Distribusi per Layanan</h3>
+                        <p class="text-purple-100 mt-1">Persentase kunjungan berdasarkan jenis layanan</p>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="serviceChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">Total Kunjungan</p>
+                            <p id="total-visits" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-lg">
+                            <span class="text-2xl">👥</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">Laki-laki</p>
+                            <p id="male-visits" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-lg">
+                            <span class="text-2xl">👨</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-pink-500 to-pink-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-pink-100 text-sm font-medium">Perempuan</p>
+                            <p id="female-visits" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-lg">
+                            <span class="text-2xl">👩</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-orange-100 text-sm font-medium">Rata-rata/Bulan</p>
+                            <p id="avg-monthly" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-lg">
+                            <span class="text-2xl">📊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yearly Summary Table -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-6">
+                    <h2 class="text-2xl font-bold text-white">📊 Rekap per Tahun</h2>
+                    <p class="text-blue-100 mt-2">Ringkasan kunjungan berdasarkan tahun dan layanan</p>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tahun</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Poliklinik</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">MCU</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">IGD</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rawat Inap</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Pertumbuhan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="yearly-summary-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Comparison Table -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 px-8 py-6">
+                    <h2 class="text-2xl font-bold text-white">🏥 Perbandingan Layanan</h2>
+                    <p class="text-indigo-100 mt-2">Perbandingan kunjungan antar layanan berdasarkan filter</p>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jenis Layanan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total Kunjungan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Persentase</th>
+                                </tr>
+                            </thead>
+                            <tbody id="service-comparison-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Poliklinik -->
+        <div id="poliklinik" class="tab-content">
+            <!-- Filter Section for Poliklinik -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">🔍 Filter Data Poliklinik</h3>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                            <input type="date" id="poli-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Akhir</label>
+                            <input type="date" id="poli-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
+                            <select id="poli-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
+                            <select id="poli-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Tahun</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
+                            <select id="poli-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Jaminan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <button onclick="applyPoliklinikFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔍 Terapkan Filter
+                        </button>
+                        <button onclick="resetPoliklinikFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Recap Table for Poliklinik -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white">📊 Rekap Bulanan Poliklinik</h3>
+                    <p class="text-blue-100 mt-1">Ringkasan kunjungan per bulan</p>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-blue-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poli-monthly-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Data Table for Poliklinik -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">🏥 Data Detail Kunjungan Poliklinik</h2>
+                            <p class="text-blue-100 mt-2">Data lengkap kunjungan poliklinik dari tahun 2022 hingga terbaru</p>
+                        </div>
+                        <button onclick="refreshPoliklinikData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            <span id="refresh-poli-text">🔄 Refresh</span>
+                            <span id="refresh-poli-loading" class="loading hidden ml-2"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-blue-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poliklinik-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: MCU -->
+        <div id="mcu" class="tab-content">
+            <!-- Filter Section for MCU -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
+                <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">🔍 Filter Data MCU</h3>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                            <input type="date" id="mcu-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Akhir</label>
+                            <input type="date" id="mcu-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
+                            <select id="mcu-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
+                            <select id="mcu-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Semua Tahun</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
+                            <select id="mcu-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Semua Jaminan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <button onclick="applyMCUFilters()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔍 Terapkan Filter
+                        </button>
+                        <button onclick="resetMCUFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Recap Table for MCU -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white">📊 Rekap Bulanan MCU</h3>
+                    <p class="text-green-100 mt-1">Ringkasan kunjungan per bulan</p>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-green-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mcu-monthly-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Data Table for MCU -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-8 py-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">🔬 Data Detail Kunjungan Medical Check Up</h2>
+                            <p class="text-green-100 mt-2">Data lengkap kunjungan MCU dari tahun 2022 hingga terbaru</p>
+                        </div>
+                        <button onclick="refreshMCUData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            <span id="refresh-mcu-text">🔄 Refresh</span>
+                            <span id="refresh-mcu-loading" class="loading hidden ml-2"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-green-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mcu-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: IGD -->
+        <div id="igd" class="tab-content">
+            <!-- Filter Section for IGD -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
+                <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">🔍 Filter Data IGD</h3>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                            <input type="date" id="igd-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Akhir</label>
+                            <input type="date" id="igd-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
+                            <select id="igd-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
+                            <select id="igd-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Semua Tahun</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
+                            <select id="igd-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Semua Jaminan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <button onclick="applyIGDFilters()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔍 Terapkan Filter
+                        </button>
+                        <button onclick="resetIGDFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Recap Table for IGD -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white">📊 Rekap Bulanan IGD</h3>
+                    <p class="text-red-100 mt-1">Ringkasan kunjungan per bulan</p>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-red-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
+                                </tr>
+                            </thead>
+                            <tbody id="igd-monthly-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Data Table for IGD -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-red-600 to-red-700 px-8 py-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">🚨 Data Detail Kunjungan Instalasi Gawat Darurat</h2>
+                            <p class="text-red-100 mt-2">Data lengkap kunjungan IGD dari tahun 2022 hingga terbaru</p>
+                        </div>
+                        <button onclick="refreshIGDData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            <span id="refresh-igd-text">🔄 Refresh</span>
+                            <span id="refresh-igd-loading" class="loading hidden ml-2"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-red-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="igd-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Rawat Inap -->
+        <div id="rawat-inap" class="tab-content">
+            <!-- Filter Section for Rawat Inap -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-600 to-purple-800 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">🔍 Filter Data Rawat Inap</h3>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                            <input type="date" id="ri-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Akhir</label>
+                            <input type="date" id="ri-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
+                            <select id="ri-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
+                            <select id="ri-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">Semua Tahun</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
+                            <select id="ri-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">Semua Jaminan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <button onclick="applyRawatInapFilters()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔍 Terapkan Filter
+                        </button>
+                        <button onclick="resetRawatInapFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Recap Table for Rawat Inap -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white">📊 Rekap Bulanan Rawat Inap</h3>
+                    <p class="text-purple-100 mt-1">Ringkasan kunjungan per bulan</p>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-purple-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ri-monthly-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Data Table for Rawat Inap -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">🛏️ Data Detail Kunjungan Rawat Inap</h2>
+                            <p class="text-purple-100 mt-2">Data lengkap kunjungan rawat inap dari tahun 2022 hingga terbaru</p>
+                        </div>
+                        <button onclick="refreshRawatInapData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
+                            <span id="refresh-ri-text">🔄 Refresh</span>
+                            <span id="refresh-ri-loading" class="loading hidden ml-2"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-purple-800 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Kelas</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rawat-inap-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Status Connection -->
+    <div id="connection-status" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hidden">
+        ✅ Terhubung ke Google Sheets
+    </div>
+
+    <script>
+        // Global variables - Multiple sheet URLs dalam satu spreadsheet
+        const BASE_SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsMDOAK8FZ5x40YwpMqo0JOiRUiIX02nz6cG4iuDUOAifWzSzp8ycY1Q7c8z9cyzFUQxQmyCOdzxO-/pub';
+        
+        // GID untuk setiap sheet - Sesuai dengan sheet Anda
+        const SHEET_GIDS = {
+            'Poliklinik': '1817538522',  // Sheet Poliklinik
+            'MCU': '761215218',          // Sheet MCU
+            'IGD': '1284660831',         // Sheet IGD
+            'RI': '0'                    // Sheet Rawat Inap (default)
+        };
+        
+        // Generate URLs untuk setiap sheet
+        const SHEETS_URLS = {};
+        Object.keys(SHEET_GIDS).forEach(sheetName => {
+            SHEETS_URLS[sheetName] = `${BASE_SPREADSHEET_URL}?gid=${SHEET_GIDS[sheetName]}&single=true&output=csv`;
+        });
+        let allData = {};
+        let filteredData = {};
+        let yearlyChart = null;
+        let serviceChart = null;
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'border-blue-600', 'text-blue-600');
+                button.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active', 'border-blue-600', 'text-blue-600');
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+        }
+
+        // CSV parsing function
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const result = [];
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    result.push(row);
+                }
+            }
+            return result;
+        }
+
+        // Load data from Google Sheets
+        async function loadFromGoogleSheets() {
+            try {
+                showConnectionStatus('🔄 Mengambil data...', 'bg-blue-500');
+                
+                const response = await fetch(SHEETS_URLS.Poliklinik);
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                
+                // Process and categorize data
+                processData(data);
+                
+                showConnectionStatus('✅ Data berhasil dimuat', 'bg-green-500');
+                setTimeout(() => hideConnectionStatus(), 3000);
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showConnectionStatus('❌ Gagal memuat data', 'bg-red-500');
+                loadFallbackData();
+            }
+        }
+
+        // Process data and populate tables
+        function processData(data) {
+            console.log('Raw data received:', data);
+            console.log('Sample row:', data[0]);
+            
+            // Extract year from date and add to each row
+            data.forEach(row => {
+                if (row.Tanggal) {
+                    const year = row.Tanggal.split('-')[0];
+                    row.Tahun = year;
+                }
+            });
+            
+            // For now, treat all data as Poliklinik since that's what we have
+            // Later you can add different sheets for MCU, IGD, RI
+            const services = {
+                'Poliklinik': data,
+                'MCU': [], // Will be populated from separate sheet
+                'IGD': [], // Will be populated from separate sheet  
+                'RI': []   // Will be populated from separate sheet
+            };
+
+            console.log('Processed services:', services);
+            console.log('Total Poliklinik records:', services.Poliklinik.length);
+
+            // Store data globally for individual tab refresh
+            allData = services;
+            filteredData = JSON.parse(JSON.stringify(services)); // Deep copy
+
+            // Populate filter options
+            populateFilterOptions();
+
+            // Populate tables and charts
+            populateRekapTable(services);
+            populateServiceTables(services);
+            updateDashboard();
+        }
+
+        // Populate filter dropdown options
+        function populateFilterOptions() {
+            const allRecords = [];
+            Object.keys(allData).forEach(service => {
+                allData[service].forEach(record => {
+                    allRecords.push({...record, Service: service});
+                });
+            });
+
+            // Populate year filter for main tab
+            const years = [...new Set(allRecords.map(r => r.Tahun))].filter(y => y).sort();
+            const yearSelect = document.getElementById('year-filter');
+            yearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+            years.forEach(year => {
+                yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+
+            // Populate insurance filter for main tab
+            const insurances = [...new Set(allRecords.map(r => r.JAMINAN || r.Jaminan).filter(j => j))].sort();
+            const insuranceSelect = document.getElementById('insurance-filter');
+            insuranceSelect.innerHTML = '<option value="">Semua Jaminan</option>';
+            insurances.forEach(insurance => {
+                insuranceSelect.innerHTML += `<option value="${insurance}">${insurance}</option>`;
+            });
+
+            // Populate individual tab filters
+            populateIndividualTabFilters();
+        }
+
+        function populateIndividualTabFilters() {
+            // Populate Poliklinik filters
+            if (allData.Poliklinik && allData.Poliklinik.length > 0) {
+                const poliYears = [...new Set(allData.Poliklinik.map(r => r.Tahun))].filter(y => y).sort();
+                const poliInsurances = [...new Set(allData.Poliklinik.map(r => r.JAMINAN || r.Jaminan).filter(j => j))].sort();
+                
+                const poliYearSelect = document.getElementById('poli-year-filter');
+                const poliInsuranceSelect = document.getElementById('poli-insurance-filter');
+                
+                poliYearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+                poliYears.forEach(year => {
+                    poliYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                });
+                
+                poliInsuranceSelect.innerHTML = '<option value="">Semua Jaminan</option>';
+                poliInsurances.forEach(insurance => {
+                    poliInsuranceSelect.innerHTML += `<option value="${insurance}">${insurance}</option>`;
+                });
+            }
+
+            // Populate MCU filters
+            if (allData.MCU && allData.MCU.length > 0) {
+                const mcuYears = [...new Set(allData.MCU.map(r => r.Tahun))].filter(y => y).sort();
+                const mcuInsurances = [...new Set(allData.MCU.map(r => r.JAMINAN || r.Jaminan).filter(j => j))].sort();
+                
+                const mcuYearSelect = document.getElementById('mcu-year-filter');
+                const mcuInsuranceSelect = document.getElementById('mcu-insurance-filter');
+                
+                mcuYearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+                mcuYears.forEach(year => {
+                    mcuYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                });
+                
+                mcuInsuranceSelect.innerHTML = '<option value="">Semua Jaminan</option>';
+                mcuInsurances.forEach(insurance => {
+                    mcuInsuranceSelect.innerHTML += `<option value="${insurance}">${insurance}</option>`;
+                });
+            }
+
+            // Populate IGD filters
+            if (allData.IGD && allData.IGD.length > 0) {
+                const igdYears = [...new Set(allData.IGD.map(r => r.Tahun))].filter(y => y).sort();
+                const igdInsurances = [...new Set(allData.IGD.map(r => r.JAMINAN || r.Jaminan).filter(j => j))].sort();
+                
+                const igdYearSelect = document.getElementById('igd-year-filter');
+                const igdInsuranceSelect = document.getElementById('igd-insurance-filter');
+                
+                igdYearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+                igdYears.forEach(year => {
+                    igdYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                });
+                
+                igdInsuranceSelect.innerHTML = '<option value="">Semua Jaminan</option>';
+                igdInsurances.forEach(insurance => {
+                    igdInsuranceSelect.innerHTML += `<option value="${insurance}">${insurance}</option>`;
+                });
+            }
+
+            // Populate Rawat Inap filters
+            if (allData.RI && allData.RI.length > 0) {
+                const riYears = [...new Set(allData.RI.map(r => r.Tahun))].filter(y => y).sort();
+                const riInsurances = [...new Set(allData.RI.map(r => r.JAMINAN || r.Jaminan).filter(j => j))].sort();
+                
+                const riYearSelect = document.getElementById('ri-year-filter');
+                const riInsuranceSelect = document.getElementById('ri-insurance-filter');
+                
+                riYearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+                riYears.forEach(year => {
+                    riYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                });
+                
+                riInsuranceSelect.innerHTML = '<option value="">Semua Jaminan</option>';
+                riInsurances.forEach(insurance => {
+                    riInsuranceSelect.innerHTML += `<option value="${insurance}">${insurance}</option>`;
+                });
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const month = document.getElementById('month-filter').value;
+            const year = document.getElementById('year-filter').value;
+            const insurance = document.getElementById('insurance-filter').value;
+            const service = document.getElementById('service-filter').value;
+            const gender = document.getElementById('gender-filter').value;
+
+            filteredData = {};
+            
+            Object.keys(allData).forEach(serviceName => {
+                if (service && service !== serviceName) return;
+                
+                filteredData[serviceName] = allData[serviceName].filter(record => {
+                    // Date range filter
+                    if (startDate && record.Tanggal < startDate) return false;
+                    if (endDate && record.Tanggal > endDate) return false;
+                    
+                    // Month filter
+                    if (month && record.Tanggal) {
+                        const recordMonth = record.Tanggal.split('-')[1];
+                        if (recordMonth !== month) return false;
+                    }
+                    
+                    // Year filter
+                    if (year && record.Tahun !== year) return false;
+                    
+                    // Insurance filter
+                    if (insurance) {
+                        const recordInsurance = record.JAMINAN || record.Jaminan;
+                        if (recordInsurance !== insurance) return false;
+                    }
+                    
+                    return true;
+                });
+            });
+
+            updateDashboard();
+            showConnectionStatus('✅ Filter berhasil diterapkan', 'bg-green-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            document.getElementById('month-filter').value = '';
+            document.getElementById('year-filter').value = '';
+            document.getElementById('insurance-filter').value = '';
+            document.getElementById('service-filter').value = '';
+            document.getElementById('gender-filter').value = '';
+            
+            filteredData = JSON.parse(JSON.stringify(allData));
+            updateDashboard();
+            showConnectionStatus('✅ Filter berhasil direset', 'bg-blue-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        // Update dashboard with filtered data
+        function updateDashboard() {
+            updateSummaryCards();
+            updateYearlySummaryTable();
+            updateServiceComparisonTable();
+            updateCharts();
+        }
+
+        // Update summary cards
+        function updateSummaryCards() {
+            const gender = document.getElementById('gender-filter').value;
+            let totalVisits = 0;
+            let maleVisits = 0;
+            let femaleVisits = 0;
+
+            Object.keys(filteredData).forEach(service => {
+                filteredData[service].forEach(record => {
+                    // Parse values properly, handling empty strings and non-numeric values
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+
+                    // Always accumulate male and female totals
+                    maleVisits += male;
+                    femaleVisits += female;
+
+                    // For total visits, use filter or grand total
+                    if (gender === 'L') {
+                        totalVisits += male;
+                    } else if (gender === 'P') {
+                        totalVisits += female;
+                    } else {
+                        // Use grand total if available, otherwise sum male + female
+                        totalVisits += grandTotal > 0 ? grandTotal : (male + female);
+                    }
+                });
+            });
+
+            // Calculate average monthly visits based on unique month-year combinations
+            const monthlyTotals = {};
+            Object.keys(filteredData).forEach(service => {
+                filteredData[service].forEach(record => {
+                    if (record.Tanggal) {
+                        const monthYear = record.Tanggal.substring(0, 7); // YYYY-MM
+                        if (!monthlyTotals[monthYear]) {
+                            monthlyTotals[monthYear] = 0;
+                        }
+                        
+                        const grandTotal = parseFloat(record['Grand Total']) || 0;
+                        const male = parseFloat(record.L) || 0;
+                        const female = parseFloat(record.P) || 0;
+                        
+                        if (gender === 'L') {
+                            monthlyTotals[monthYear] += male;
+                        } else if (gender === 'P') {
+                            monthlyTotals[monthYear] += female;
+                        } else {
+                            monthlyTotals[monthYear] += grandTotal > 0 ? grandTotal : (male + female);
+                        }
+                    }
+                });
+            });
+            
+            const monthCount = Object.keys(monthlyTotals).length;
+            const avgMonthly = monthCount > 0 ? Math.round(totalVisits / monthCount) : 0;
+
+            document.getElementById('total-visits').textContent = formatNumber(totalVisits);
+            document.getElementById('male-visits').textContent = formatNumber(maleVisits);
+            document.getElementById('female-visits').textContent = formatNumber(femaleVisits);
+            document.getElementById('avg-monthly').textContent = formatNumber(avgMonthly);
+        }
+
+        // Update yearly summary table
+        function updateYearlySummaryTable() {
+            const tbody = document.getElementById('yearly-summary-table');
+            tbody.innerHTML = '';
+
+            // Group data by year and sum the actual values
+            const yearlyData = {};
+            Object.keys(filteredData).forEach(service => {
+                filteredData[service].forEach(record => {
+                    const year = record.Tahun;
+                    if (!year) return;
+
+                    if (!yearlyData[year]) {
+                        yearlyData[year] = { Poliklinik: 0, MCU: 0, IGD: 0, RI: 0 };
+                    }
+                    
+                    // Sum the actual numeric values from Grand Total column
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    
+                    // Use Grand Total if available, otherwise sum L + P
+                    const totalValue = grandTotal > 0 ? grandTotal : (male + female);
+                    yearlyData[year][service] += totalValue;
+                });
+            });
+
+            const years = Object.keys(yearlyData).sort();
+            let previousTotal = 0;
+
+            years.forEach((year, index) => {
+                const data = yearlyData[year];
+                const total = data.Poliklinik + data.MCU + data.IGD + data.RI;
+                const growth = index > 0 && previousTotal > 0 ? ((total - previousTotal) / previousTotal * 100).toFixed(1) : 0;
+                const growthClass = growth >= 0 ? 'text-green-600' : 'text-red-600';
+                const growthSymbol = growth >= 0 ? '+' : '';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${year}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.Poliklinik)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.MCU)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.IGD)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.RI)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${formatNumber(total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${growthClass}">
+                        ${index > 0 ? `${growthSymbol}${growth}%` : '-'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+                previousTotal = total;
+            });
+
+            if (years.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        // Update service comparison table
+        function updateServiceComparisonTable() {
+            const tbody = document.getElementById('service-comparison-table');
+            tbody.innerHTML = '';
+
+            let grandTotal = 0;
+            const serviceStats = {};
+
+            Object.keys(filteredData).forEach(service => {
+                let total = 0;
+                let male = 0;
+                let female = 0;
+
+                filteredData[service].forEach(record => {
+                    // Parse numeric values properly
+                    const grandTotalValue = parseFloat(record['Grand Total']) || 0;
+                    const maleValue = parseFloat(record.L) || 0;
+                    const femaleValue = parseFloat(record.P) || 0;
+
+                    const gender = document.getElementById('gender-filter').value;
+                    if (gender === 'L') {
+                        total += maleValue;
+                        male += maleValue;
+                    } else if (gender === 'P') {
+                        total += femaleValue;
+                        female += femaleValue;
+                    } else {
+                        // Use Grand Total if available, otherwise sum L + P
+                        total += grandTotalValue > 0 ? grandTotalValue : (maleValue + femaleValue);
+                        male += maleValue;
+                        female += femaleValue;
+                    }
+                });
+
+                serviceStats[service] = { total, male, female };
+                grandTotal += total;
+            });
+
+            Object.keys(serviceStats).forEach(service => {
+                const stats = serviceStats[service];
+                const percentage = grandTotal > 0 ? ((stats.total / grandTotal) * 100).toFixed(1) : 0;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${getServiceDisplayName(service)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(stats.total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(stats.male)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(stats.female)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">${percentage}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (Object.keys(serviceStats).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        // Update charts
+        function updateCharts() {
+            updateYearlyChart();
+            updateServiceChart();
+        }
+
+        // Update yearly trend chart
+        function updateYearlyChart() {
+            const ctx = document.getElementById('yearlyChart').getContext('2d');
+            
+            // Destroy existing chart
+            if (yearlyChart) {
+                yearlyChart.destroy();
+            }
+
+            // Prepare data - sum actual numeric values
+            const yearlyData = {};
+            Object.keys(filteredData).forEach(service => {
+                filteredData[service].forEach(record => {
+                    const year = record.Tahun;
+                    if (!year) return;
+
+                    if (!yearlyData[year]) yearlyData[year] = 0;
+                    
+                    // Parse numeric values properly
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    
+                    const gender = document.getElementById('gender-filter').value;
+                    if (gender === 'L') {
+                        yearlyData[year] += male;
+                    } else if (gender === 'P') {
+                        yearlyData[year] += female;
+                    } else {
+                        // Use Grand Total if available, otherwise sum L + P
+                        yearlyData[year] += grandTotal > 0 ? grandTotal : (male + female);
+                    }
+                });
+            });
+
+            const years = Object.keys(yearlyData).sort();
+            const values = years.map(year => yearlyData[year]);
+
+            yearlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Total Kunjungan',
+                        data: values,
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update service distribution chart
+        function updateServiceChart() {
+            const ctx = document.getElementById('serviceChart').getContext('2d');
+            
+            // Destroy existing chart
+            if (serviceChart) {
+                serviceChart.destroy();
+            }
+
+            // Prepare data - sum actual numeric values
+            const serviceData = {};
+            Object.keys(filteredData).forEach(service => {
+                serviceData[service] = 0;
+                filteredData[service].forEach(record => {
+                    // Parse numeric values properly
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    
+                    const gender = document.getElementById('gender-filter').value;
+                    if (gender === 'L') {
+                        serviceData[service] += male;
+                    } else if (gender === 'P') {
+                        serviceData[service] += female;
+                    } else {
+                        // Use Grand Total if available, otherwise sum L + P
+                        serviceData[service] += grandTotal > 0 ? grandTotal : (male + female);
+                    }
+                });
+            });
+
+            const labels = Object.keys(serviceData).map(service => getServiceDisplayName(service));
+            const values = Object.values(serviceData);
+            const colors = ['#3B82F6', '#10B981', '#EF4444', '#8B5CF6'];
+
+            serviceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate rekap table
+        function populateRekapTable(services) {
+            const tbody = document.getElementById('rekap-table');
+            tbody.innerHTML = '';
+            
+            Object.keys(services).forEach(serviceName => {
+                const serviceData = services[serviceName];
+                
+                // Get all unique years and sort them
+                const years = [...new Set(serviceData.map(row => row.Tahun))].sort();
+                const startYear = years[0] || '2022';
+                const latestYear = years[years.length - 1] || startYear;
+                
+                // Calculate totals for start year and latest year - sum actual numeric values
+                const totalStart = serviceData.filter(row => row.Tahun === startYear)
+                    .reduce((sum, row) => {
+                        const grandTotal = parseFloat(row['Grand Total']) || 0;
+                        const male = parseFloat(row.L) || 0;
+                        const female = parseFloat(row.P) || 0;
+                        return sum + (grandTotal > 0 ? grandTotal : (male + female));
+                    }, 0);
+                    
+                const totalLatest = serviceData.filter(row => row.Tahun === latestYear)
+                    .reduce((sum, row) => {
+                        const grandTotal = parseFloat(row['Grand Total']) || 0;
+                        const male = parseFloat(row.L) || 0;
+                        const female = parseFloat(row.P) || 0;
+                        return sum + (grandTotal > 0 ? grandTotal : (male + female));
+                    }, 0);
+                
+                const change = totalLatest - totalStart;
+                const percentage = totalStart > 0 ? ((change / totalStart) * 100).toFixed(1) : 0;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                
+                const changeClass = change >= 0 ? 'text-green-600' : 'text-red-600';
+                const changeSymbol = change >= 0 ? '+' : '';
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${getServiceDisplayName(serviceName)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 year-2022 font-medium">${formatNumber(totalStart)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 year-2025 font-medium">${formatNumber(totalLatest)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${changeClass}">${changeSymbol}${formatNumber(Math.abs(change))}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${changeClass}">${changeSymbol}${percentage}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Populate individual service tables
+        function populateServiceTables(services) {
+            // Initialize filtered data
+            filteredPoliklinikData = services['Poliklinik'] || [];
+            filteredMCUData = services['MCU'] || [];
+            filteredIGDData = services['IGD'] || [];
+            filteredRawatInapData = services['RI'] || [];
+
+            // Populate tables
+            populatePoliklinikTable(filteredPoliklinikData);
+            populateMCUTable(filteredMCUData);
+            populateIGDTable(filteredIGDData);
+            populateRawatInapTable(filteredRawatInapData);
+
+            // Populate monthly tables
+            updatePoliklinikMonthlyTable(filteredPoliklinikData);
+            updateMCUMonthlyTable(filteredMCUData);
+            updateIGDMonthlyTable(filteredIGDData);
+            updateRawatInapMonthlyTable(filteredRawatInapData);
+        }
+
+        // Individual tab filter variables
+        let filteredPoliklinikData = [];
+        let filteredMCUData = [];
+        let filteredIGDData = [];
+        let filteredRawatInapData = [];
+
+        // Individual tab filter functions
+        function applyPoliklinikFilters() {
+            const startDate = document.getElementById('poli-start-date').value;
+            const endDate = document.getElementById('poli-end-date').value;
+            const month = document.getElementById('poli-month-filter').value;
+            const year = document.getElementById('poli-year-filter').value;
+            const insurance = document.getElementById('poli-insurance-filter').value;
+
+            filteredPoliklinikData = allData.Poliklinik.filter(record => {
+                if (startDate && record.Tanggal < startDate) return false;
+                if (endDate && record.Tanggal > endDate) return false;
+                if (month && record.Tanggal) {
+                    const recordMonth = record.Tanggal.split('-')[1];
+                    if (recordMonth !== month) return false;
+                }
+                if (year && record.Tahun !== year) return false;
+                if (insurance) {
+                    const recordInsurance = record.JAMINAN || record.Jaminan;
+                    if (recordInsurance !== insurance) return false;
+                }
+                return true;
+            });
+
+            populatePoliklinikTable(filteredPoliklinikData);
+            updatePoliklinikMonthlyTable(filteredPoliklinikData);
+            showConnectionStatus('✅ Filter Poliklinik berhasil diterapkan', 'bg-blue-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        function resetPoliklinikFilters() {
+            document.getElementById('poli-start-date').value = '';
+            document.getElementById('poli-end-date').value = '';
+            document.getElementById('poli-month-filter').value = '';
+            document.getElementById('poli-year-filter').value = '';
+            document.getElementById('poli-insurance-filter').value = '';
+            
+            filteredPoliklinikData = allData.Poliklinik || [];
+            populatePoliklinikTable(filteredPoliklinikData);
+            updatePoliklinikMonthlyTable(filteredPoliklinikData);
+            showConnectionStatus('✅ Filter Poliklinik berhasil direset', 'bg-blue-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        function applyMCUFilters() {
+            const startDate = document.getElementById('mcu-start-date').value;
+            const endDate = document.getElementById('mcu-end-date').value;
+            const month = document.getElementById('mcu-month-filter').value;
+            const year = document.getElementById('mcu-year-filter').value;
+            const insurance = document.getElementById('mcu-insurance-filter').value;
+
+            filteredMCUData = allData.MCU.filter(record => {
+                if (startDate && record.Tanggal < startDate) return false;
+                if (endDate && record.Tanggal > endDate) return false;
+                if (month && record.Tanggal) {
+                    const recordMonth = record.Tanggal.split('-')[1];
+                    if (recordMonth !== month) return false;
+                }
+                if (year && record.Tahun !== year) return false;
+                if (insurance) {
+                    const recordInsurance = record.JAMINAN || record.Jaminan;
+                    if (recordInsurance !== insurance) return false;
+                }
+                return true;
+            });
+
+            populateMCUTable(filteredMCUData);
+            updateMCUMonthlyTable(filteredMCUData);
+            showConnectionStatus('✅ Filter MCU berhasil diterapkan', 'bg-green-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        function resetMCUFilters() {
+            document.getElementById('mcu-start-date').value = '';
+            document.getElementById('mcu-end-date').value = '';
+            document.getElementById('mcu-month-filter').value = '';
+            document.getElementById('mcu-year-filter').value = '';
+            document.getElementById('mcu-insurance-filter').value = '';
+            
+            filteredMCUData = allData.MCU || [];
+            populateMCUTable(filteredMCUData);
+            updateMCUMonthlyTable(filteredMCUData);
+            showConnectionStatus('✅ Filter MCU berhasil direset', 'bg-green-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        function applyIGDFilters() {
+            const startDate = document.getElementById('igd-start-date').value;
+            const endDate = document.getElementById('igd-end-date').value;
+            const month = document.getElementById('igd-month-filter').value;
+            const year = document.getElementById('igd-year-filter').value;
+            const insurance = document.getElementById('igd-insurance-filter').value;
+
+            filteredIGDData = allData.IGD.filter(record => {
+                if (startDate && record.Tanggal < startDate) return false;
+                if (endDate && record.Tanggal > endDate) return false;
+                if (month && record.Tanggal) {
+                    const recordMonth = record.Tanggal.split('-')[1];
+                    if (recordMonth !== month) return false;
+                }
+                if (year && record.Tahun !== year) return false;
+                if (insurance) {
+                    const recordInsurance = record.JAMINAN || record.Jaminan;
+                    if (recordInsurance !== insurance) return false;
+                }
+                return true;
+            });
+
+            populateIGDTable(filteredIGDData);
+            updateIGDMonthlyTable(filteredIGDData);
+            showConnectionStatus('✅ Filter IGD berhasil diterapkan', 'bg-red-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        function resetIGDFilters() {
+            document.getElementById('igd-start-date').value = '';
+            document.getElementById('igd-end-date').value = '';
+            document.getElementById('igd-month-filter').value = '';
+            document.getElementById('igd-year-filter').value = '';
+            document.getElementById('igd-insurance-filter').value = '';
+            
+            filteredIGDData = allData.IGD || [];
+            populateIGDTable(filteredIGDData);
+            updateIGDMonthlyTable(filteredIGDData);
+            showConnectionStatus('✅ Filter IGD berhasil direset', 'bg-red-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        function applyRawatInapFilters() {
+            const startDate = document.getElementById('ri-start-date').value;
+            const endDate = document.getElementById('ri-end-date').value;
+            const month = document.getElementById('ri-month-filter').value;
+            const year = document.getElementById('ri-year-filter').value;
+            const insurance = document.getElementById('ri-insurance-filter').value;
+
+            filteredRawatInapData = allData.RI.filter(record => {
+                if (startDate && record.Tanggal < startDate) return false;
+                if (endDate && record.Tanggal > endDate) return false;
+                if (month && record.Tanggal) {
+                    const recordMonth = record.Tanggal.split('-')[1];
+                    if (recordMonth !== month) return false;
+                }
+                if (year && record.Tahun !== year) return false;
+                if (insurance) {
+                    const recordInsurance = record.JAMINAN || record.Jaminan;
+                    if (recordInsurance !== insurance) return false;
+                }
+                return true;
+            });
+
+            populateRawatInapTable(filteredRawatInapData);
+            updateRawatInapMonthlyTable(filteredRawatInapData);
+            showConnectionStatus('✅ Filter Rawat Inap berhasil diterapkan', 'bg-purple-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        function resetRawatInapFilters() {
+            document.getElementById('ri-start-date').value = '';
+            document.getElementById('ri-end-date').value = '';
+            document.getElementById('ri-month-filter').value = '';
+            document.getElementById('ri-year-filter').value = '';
+            document.getElementById('ri-insurance-filter').value = '';
+            
+            filteredRawatInapData = allData.RI || [];
+            populateRawatInapTable(filteredRawatInapData);
+            updateRawatInapMonthlyTable(filteredRawatInapData);
+            showConnectionStatus('✅ Filter Rawat Inap berhasil direset', 'bg-purple-500');
+            setTimeout(() => hideConnectionStatus(), 2000);
+        }
+
+        // Monthly table update functions
+        function updatePoliklinikMonthlyTable(data) {
+            const tbody = document.getElementById('poli-monthly-table');
+            tbody.innerHTML = '';
+
+            const monthlyData = {};
+            data.forEach(record => {
+                if (record.Tanggal) {
+                    const monthYear = record.Tanggal.substring(0, 7); // YYYY-MM
+                    if (!monthlyData[monthYear]) {
+                        monthlyData[monthYear] = { male: 0, female: 0, total: 0, days: new Set() };
+                    }
+                    
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const total = grandTotal > 0 ? grandTotal : (male + female);
+                    
+                    monthlyData[monthYear].male += male;
+                    monthlyData[monthYear].female += female;
+                    monthlyData[monthYear].total += total;
+                    monthlyData[monthYear].days.add(record.Tanggal.substring(8, 10)); // Add day
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            months.forEach(month => {
+                const data = monthlyData[month];
+                const avgPerDay = data.days.size > 0 ? Math.round(data.total / data.days.size) : 0;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${formatMonthYear(month)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.male)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.female)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${formatNumber(data.total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(avgPerDay)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (months.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        function updateMCUMonthlyTable(data) {
+            const tbody = document.getElementById('mcu-monthly-table');
+            tbody.innerHTML = '';
+
+            const monthlyData = {};
+            data.forEach(record => {
+                if (record.Tanggal) {
+                    const monthYear = record.Tanggal.substring(0, 7);
+                    if (!monthlyData[monthYear]) {
+                        monthlyData[monthYear] = { male: 0, female: 0, total: 0, days: new Set() };
+                    }
+                    
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const total = grandTotal > 0 ? grandTotal : (male + female);
+                    
+                    monthlyData[monthYear].male += male;
+                    monthlyData[monthYear].female += female;
+                    monthlyData[monthYear].total += total;
+                    monthlyData[monthYear].days.add(record.Tanggal.substring(8, 10));
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            months.forEach(month => {
+                const data = monthlyData[month];
+                const avgPerDay = data.days.size > 0 ? Math.round(data.total / data.days.size) : 0;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${formatMonthYear(month)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.male)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.female)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${formatNumber(data.total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(avgPerDay)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (months.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        function updateIGDMonthlyTable(data) {
+            const tbody = document.getElementById('igd-monthly-table');
+            tbody.innerHTML = '';
+
+            const monthlyData = {};
+            data.forEach(record => {
+                if (record.Tanggal) {
+                    const monthYear = record.Tanggal.substring(0, 7);
+                    if (!monthlyData[monthYear]) {
+                        monthlyData[monthYear] = { male: 0, female: 0, total: 0, days: new Set() };
+                    }
+                    
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const total = grandTotal > 0 ? grandTotal : (male + female);
+                    
+                    monthlyData[monthYear].male += male;
+                    monthlyData[monthYear].female += female;
+                    monthlyData[monthYear].total += total;
+                    monthlyData[monthYear].days.add(record.Tanggal.substring(8, 10));
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            months.forEach(month => {
+                const data = monthlyData[month];
+                const avgPerDay = data.days.size > 0 ? Math.round(data.total / data.days.size) : 0;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${formatMonthYear(month)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.male)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.female)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${formatNumber(data.total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(avgPerDay)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (months.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        function updateRawatInapMonthlyTable(data) {
+            const tbody = document.getElementById('ri-monthly-table');
+            tbody.innerHTML = '';
+
+            const monthlyData = {};
+            data.forEach(record => {
+                if (record.Tanggal) {
+                    const monthYear = record.Tanggal.substring(0, 7);
+                    if (!monthlyData[monthYear]) {
+                        monthlyData[monthYear] = { male: 0, female: 0, total: 0, days: new Set() };
+                    }
+                    
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const total = grandTotal > 0 ? grandTotal : (male + female);
+                    
+                    monthlyData[monthYear].male += male;
+                    monthlyData[monthYear].female += female;
+                    monthlyData[monthYear].total += total;
+                    monthlyData[monthYear].days.add(record.Tanggal.substring(8, 10));
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            months.forEach(month => {
+                const data = monthlyData[month];
+                const avgPerDay = data.days.size > 0 ? Math.round(data.total / data.days.size) : 0;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${formatMonthYear(month)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.male)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(data.female)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${formatNumber(data.total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatNumber(avgPerDay)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (months.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        function formatMonthYear(monthYear) {
+            const [year, month] = monthYear.split('-');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${monthNames[parseInt(month) - 1]} ${year}`;
+        }
+
+        function populatePoliklinikTable(data) {
+            const tbody = document.getElementById('poliklinik-table');
+            tbody.innerHTML = '';
+            
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                
+                const yearClass = row.Tahun === '2022' ? 'year-2022' : (parseInt(row.Tahun) >= 2025 ? 'year-2025' : '');
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${yearClass}">${row.Tanggal || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${row.JAMINAN || row.Jaminan || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.L) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.P) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-center">${formatNumber(parseFloat(row['Grand Total']) || 0)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        function populateMCUTable(data) {
+            const tbody = document.getElementById('mcu-table');
+            tbody.innerHTML = '';
+            
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                
+                const yearClass = row.Tahun === '2022' ? 'year-2022' : (parseInt(row.Tahun) >= 2025 ? 'year-2025' : '');
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${yearClass}">${row.Tanggal || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${row.JAMINAN || row.Jaminan || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.L) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.P) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-center">${formatNumber(parseFloat(row['Grand Total']) || 0)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        function populateIGDTable(data) {
+            const tbody = document.getElementById('igd-table');
+            tbody.innerHTML = '';
+            
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                
+                const yearClass = row.Tahun === '2022' ? 'year-2022' : (parseInt(row.Tahun) >= 2025 ? 'year-2025' : '');
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${yearClass}">${row.Tanggal || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${row.JAMINAN || row.Jaminan || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.L) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.P) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-center">${formatNumber(parseFloat(row['Grand Total']) || 0)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        function populateRawatInapTable(data) {
+            const tbody = document.getElementById('rawat-inap-table');
+            tbody.innerHTML = '';
+            
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors duration-150';
+                
+                const yearClass = row.Tahun === '2022' ? 'year-2022' : (parseInt(row.Tahun) >= 2025 ? 'year-2025' : '');
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${yearClass}">${row.Tanggal || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${row.KELAS || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${row.JAMINAN || row.Jaminan || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.L) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">${formatNumber(parseFloat(row.P) || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-center">${formatNumber(parseFloat(row['Grand Total']) || 0)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Tidak ada data tersedia</td></tr>';
+            }
+        }
+
+        // Helper functions
+        function formatNumber(num) {
+            if (isNaN(num) || num === null || num === undefined) return '0';
+            return new Intl.NumberFormat('id-ID').format(num);
+        }
+
+        function getServiceDisplayName(serviceName) {
+            const names = {
+                'Poliklinik': '🏥 Poliklinik',
+                'MCU': '🔬 Medical Check Up',
+                'IGD': '🚨 IGD',
+                'RI': '🛏️ Rawat Inap'
+            };
+            return names[serviceName] || serviceName;
+        }
+
+        function showConnectionStatus(message, bgClass) {
+            const status = document.getElementById('connection-status');
+            status.textContent = message;
+            status.className = `fixed bottom-4 right-4 text-white px-4 py-2 rounded-lg shadow-lg ${bgClass}`;
+            status.classList.remove('hidden');
+        }
+
+        function hideConnectionStatus() {
+            document.getElementById('connection-status').classList.add('hidden');
+        }
+
+        // Load fallback data if Google Sheets fails
+        function loadFallbackData() {
+            const fallbackData = {
+                'Poliklinik': [
+                    { Tanggal: '2022-01-01', STATUS: 'Aktif', L: '150', P: '180', 'Grand Total': '330', Jaminan: 'BPJS', Tahun: '2022' },
+                    { Tanggal: '2023-06-15', STATUS: 'Aktif', L: '160', P: '190', 'Grand Total': '350', Jaminan: 'BPJS', Tahun: '2023' },
+                    { Tanggal: '2024-03-20', STATUS: 'Aktif', L: '165', P: '195', 'Grand Total': '360', Jaminan: 'BPJS', Tahun: '2024' },
+                    { Tanggal: '2025-01-01', STATUS: 'Aktif', L: '170', P: '200', 'Grand Total': '370', Jaminan: 'BPJS', Tahun: '2025' },
+                    { Tanggal: '2026-02-10', STATUS: 'Aktif', L: '175', P: '205', 'Grand Total': '380', Jaminan: 'BPJS', Tahun: '2026' }
+                ],
+                'MCU': [
+                    { Tanggal: '2022-01-01', STATUS: 'Selesai', L: '45', P: '55', 'Grand Total': '100', Jaminan: 'Umum', Tahun: '2022' },
+                    { Tanggal: '2023-07-12', STATUS: 'Selesai', L: '47', P: '57', 'Grand Total': '104', Jaminan: 'Umum', Tahun: '2023' },
+                    { Tanggal: '2024-04-18', STATUS: 'Selesai', L: '48', P: '58', 'Grand Total': '106', Jaminan: 'Umum', Tahun: '2024' },
+                    { Tanggal: '2025-01-01', STATUS: 'Selesai', L: '50', P: '60', 'Grand Total': '110', Jaminan: 'Umum', Tahun: '2025' },
+                    { Tanggal: '2026-03-05', STATUS: 'Selesai', L: '52', P: '62', 'Grand Total': '114', Jaminan: 'Umum', Tahun: '2026' }
+                ],
+                'IGD': [
+                    { Tanggal: '2022-01-01', STATUS: 'Darurat', L: '80', P: '70', 'Grand Total': '150', Jaminan: 'BPJS', Tahun: '2022' },
+                    { Tanggal: '2023-08-22', STATUS: 'Darurat', L: '82', P: '72', 'Grand Total': '154', Jaminan: 'BPJS', Tahun: '2023' },
+                    { Tanggal: '2024-05-30', STATUS: 'Darurat', L: '83', P: '73', 'Grand Total': '156', Jaminan: 'BPJS', Tahun: '2024' },
+                    { Tanggal: '2025-01-01', STATUS: 'Darurat', L: '85', P: '75', 'Grand Total': '160', Jaminan: 'BPJS', Tahun: '2025' },
+                    { Tanggal: '2026-04-15', STATUS: 'Darurat', L: '87', P: '77', 'Grand Total': '164', Jaminan: 'BPJS', Tahun: '2026' }
+                ],
+                'RI': [
+                    { Tanggal: '2022-01-01', KELAS: 'Kelas I', L: '25', P: '30', 'Grand Total': '55', Jaminan: 'BPJS', Tahun: '2022' },
+                    { Tanggal: '2023-09-10', KELAS: 'Kelas I', L: '26', P: '31', 'Grand Total': '57', Jaminan: 'BPJS', Tahun: '2023' },
+                    { Tanggal: '2024-06-25', KELAS: 'Kelas I', L: '27', P: '31', 'Grand Total': '58', Jaminan: 'BPJS', Tahun: '2024' },
+                    { Tanggal: '2025-01-01', KELAS: 'Kelas I', L: '28', P: '32', 'Grand Total': '60', Jaminan: 'BPJS', Tahun: '2025' },
+                    { Tanggal: '2026-05-08', KELAS: 'Kelas I', L: '29', P: '33', 'Grand Total': '62', Jaminan: 'BPJS', Tahun: '2026' }
+                ]
+            };
+            
+            populateRekapTable(fallbackData);
+            populateServiceTables(fallbackData);
+        }
+
+        // Individual refresh functions for each tab
+        async function refreshPoliklinikData() {
+            const refreshText = document.getElementById('refresh-poli-text');
+            const refreshLoading = document.getElementById('refresh-poli-loading');
+            
+            refreshText.style.display = 'none';
+            refreshLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(SHEETS_URLS.Poliklinik);
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                
+                // Add year to data
+                data.forEach(row => {
+                    if (row.Tanggal) {
+                        const year = row.Tanggal.split('-')[0];
+                        row.Tahun = year;
+                    }
+                });
+                
+                allData.Poliklinik = data;
+                populatePoliklinikTable(data);
+                populateRekapTable(allData);
+                
+                showConnectionStatus('✅ Data Poliklinik berhasil diperbarui', 'bg-green-500');
+                setTimeout(() => hideConnectionStatus(), 2000);
+                
+            } catch (error) {
+                console.error('Error refreshing Poliklinik data:', error);
+                showConnectionStatus('❌ Gagal memperbarui data Poliklinik', 'bg-red-500');
+            } finally {
+                refreshText.style.display = 'inline';
+                refreshLoading.classList.add('hidden');
+            }
+        }
+
+        async function refreshMCUData() {
+            const refreshText = document.getElementById('refresh-mcu-text');
+            const refreshLoading = document.getElementById('refresh-mcu-loading');
+            
+            refreshText.style.display = 'none';
+            refreshLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(SHEETS_URLS.MCU);
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                
+                // Add year to data
+                data.forEach(row => {
+                    if (row.Tanggal) {
+                        const year = row.Tanggal.split('-')[0];
+                        row.Tahun = year;
+                    }
+                });
+                
+                allData.MCU = data;
+                populateMCUTable(data);
+                populateRekapTable(allData);
+                
+                showConnectionStatus('✅ Data MCU berhasil diperbarui', 'bg-green-500');
+                setTimeout(() => hideConnectionStatus(), 2000);
+                
+            } catch (error) {
+                console.error('Error refreshing MCU data:', error);
+                showConnectionStatus('❌ Gagal memperbarui data MCU', 'bg-red-500');
+            } finally {
+                refreshText.style.display = 'inline';
+                refreshLoading.classList.add('hidden');
+            }
+        }
+
+        async function refreshIGDData() {
+            const refreshText = document.getElementById('refresh-igd-text');
+            const refreshLoading = document.getElementById('refresh-igd-loading');
+            
+            refreshText.style.display = 'none';
+            refreshLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(SHEETS_URLS.IGD);
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                
+                // Add year to data
+                data.forEach(row => {
+                    if (row.Tanggal) {
+                        const year = row.Tanggal.split('-')[0];
+                        row.Tahun = year;
+                    }
+                });
+                
+                allData.IGD = data;
+                populateIGDTable(data);
+                populateRekapTable(allData);
+                
+                showConnectionStatus('✅ Data IGD berhasil diperbarui', 'bg-green-500');
+                setTimeout(() => hideConnectionStatus(), 2000);
+                
+            } catch (error) {
+                console.error('Error refreshing IGD data:', error);
+                showConnectionStatus('❌ Gagal memperbarui data IGD', 'bg-red-500');
+            } finally {
+                refreshText.style.display = 'inline';
+                refreshLoading.classList.add('hidden');
+            }
+        }
+
+        async function refreshRawatInapData() {
+            const refreshText = document.getElementById('refresh-ri-text');
+            const refreshLoading = document.getElementById('refresh-ri-loading');
+            
+            refreshText.style.display = 'none';
+            refreshLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(SHEETS_URLS.RI);
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                
+                // Add year to data
+                data.forEach(row => {
+                    if (row.Tanggal) {
+                        const year = row.Tanggal.split('-')[0];
+                        row.Tahun = year;
+                    }
+                });
+                
+                allData.RI = data;
+                populateRawatInapTable(data);
+                populateRekapTable(allData);
+                
+                showConnectionStatus('✅ Data Rawat Inap berhasil diperbarui', 'bg-green-500');
+                setTimeout(() => hideConnectionStatus(), 2000);
+                
+            } catch (error) {
+                console.error('Error refreshing Rawat Inap data:', error);
+                showConnectionStatus('❌ Gagal memperbarui data Rawat Inap', 'bg-red-500');
+            } finally {
+                refreshText.style.display = 'inline';
+                refreshLoading.classList.add('hidden');
+            }
+        }
+
+        function refreshAllData() {
+            const refreshText = document.getElementById('refresh-text');
+            const refreshLoading = document.getElementById('refresh-loading');
+            
+            refreshText.style.display = 'none';
+            refreshLoading.classList.remove('hidden');
+            
+            setTimeout(() => {
+                loadFromGoogleSheets().finally(() => {
+                    refreshText.style.display = 'inline';
+                    refreshLoading.classList.add('hidden');
+                });
+            }, 1000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromGoogleSheets();
+            
+            // Auto refresh every 5 minutes
+            setInterval(loadFromGoogleSheets, 300000);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ccee8682be9d1a',t:'MTc1NDgwMjA0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
