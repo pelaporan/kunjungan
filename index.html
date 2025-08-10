@@ -6,6 +6,8 @@
     <title>Dashboard Kunjungan RS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -40,7 +42,7 @@
 <body class="bg-gray-50 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-lg border-b-2 border-blue-600">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">Dashboard Kunjungan RS</h1>
@@ -62,7 +64,7 @@
 
     <!-- Navigation Tabs -->
     <nav class="bg-white border-b border-gray-200 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex space-x-8">
                 <button onclick="showTab('rekap')" class="tab-button active py-4 px-2 border-b-3 border-blue-600 font-semibold text-sm text-blue-600 transition-all duration-200">
                     📊 Rekap Gabungan
@@ -84,7 +86,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="w-full px-4 sm:px-6 lg:px-8 py-8">
         <!-- Tab: Rekap Gabungan -->
         <div id="rekap" class="tab-content active">
             <!-- Filter Section -->
@@ -94,7 +96,7 @@
                     <p class="text-indigo-100 mt-1">Filter data berdasarkan kriteria yang diinginkan</p>
                 </div>
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         <!-- Date Range Filter -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
@@ -108,8 +110,7 @@
                         <!-- Month Filter -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
-                            <select id="month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Semua Bulan</option>
+                            <select id="month-filter" multiple class="w-full">
                                 <option value="01">Januari</option>
                                 <option value="02">Februari</option>
                                 <option value="03">Maret</option>
@@ -128,16 +129,14 @@
                         <!-- Year Filter -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
-                            <select id="year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Semua Tahun</option>
+                            <select id="year-filter" multiple class="w-full">
                             </select>
                         </div>
                         
                         <!-- Insurance Filter -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
-                            <select id="insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Semua Jaminan</option>
+                            <select id="insurance-filter" multiple class="w-full">
                             </select>
                         </div>
                         
@@ -254,22 +253,29 @@
 
             <!-- Yearly Summary Table -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-6">
-                    <h2 class="text-2xl font-bold text-white">📊 Rekap per Tahun</h2>
-                    <p class="text-blue-100 mt-2">Ringkasan kunjungan berdasarkan tahun dan layanan</p>
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-8 py-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-bold text-white">📊 Rekap per Tahun</h2>
+                            <p class="text-blue-100 mt-2">Ringkasan kunjungan berdasarkan tahun dan layanan</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 text-white">
+                            <span class="text-sm">Total: <span id="yearly-total" class="font-bold">0</span> data</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
+                <div class="p-4 sm:p-6">
+                    <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-800 sticky top-0">
+                            <thead class="bg-gray-800">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tahun</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Poliklinik</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">MCU</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">IGD</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rawat Inap</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Pertumbuhan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tahun</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Poliklinik</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">MCU</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">IGD</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rawat Inap</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Pertumbuhan</th>
                                 </tr>
                             </thead>
                             <tbody id="yearly-summary-table" class="bg-white divide-y divide-gray-200">
@@ -277,31 +283,68 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 space-y-2 sm:space-y-0">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan <span id="yearly-showing-start">0</span> - <span id="yearly-showing-end">0</span> dari <span id="yearly-showing-total">0</span> data
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="yearly-prev-btn" onclick="changeYearlyPage(-1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                ← Sebelumnya
+                            </button>
+                            <span id="yearly-page-info" class="px-3 py-1 text-sm text-gray-700">Halaman 1 dari 1</span>
+                            <button id="yearly-next-btn" onclick="changeYearlyPage(1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                Selanjutnya →
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Service Comparison Table -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 px-8 py-6">
-                    <h2 class="text-2xl font-bold text-white">🏥 Perbandingan Layanan</h2>
-                    <p class="text-indigo-100 mt-2">Perbandingan kunjungan antar layanan berdasarkan filter</p>
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 px-4 sm:px-8 py-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-bold text-white">🏥 Perbandingan Layanan</h2>
+                            <p class="text-indigo-100 mt-2">Perbandingan kunjungan antar layanan berdasarkan filter</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 text-white">
+                            <span class="text-sm">Total: <span id="service-total" class="font-bold">0</span> data</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
+                <div class="p-4 sm:p-6">
+                    <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-800 sticky top-0">
+                            <thead class="bg-gray-800">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jenis Layanan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total Kunjungan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Persentase</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jenis Layanan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total Kunjungan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Persentase</th>
                                 </tr>
                             </thead>
                             <tbody id="service-comparison-table" class="bg-white divide-y divide-gray-200">
                                 <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 space-y-2 sm:space-y-0">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan <span id="service-showing-start">0</span> - <span id="service-showing-end">0</span> dari <span id="service-showing-total">0</span> data
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="service-prev-btn" onclick="changeServicePage(-1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                ← Sebelumnya
+                            </button>
+                            <span id="service-page-info" class="px-3 py-1 text-sm text-gray-700">Halaman 1 dari 1</span>
+                            <button id="service-next-btn" onclick="changeServicePage(1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                Selanjutnya →
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -311,11 +354,11 @@
         <div id="poliklinik" class="tab-content">
             <!-- Filter Section for Poliklinik -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-4">
                     <h3 class="text-lg font-bold text-white">🔍 Filter Data Poliklinik</h3>
                 </div>
                 <div class="p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
                             <input type="date" id="poli-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -326,8 +369,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
-                            <select id="poli-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Semua Bulan</option>
+                            <select id="poli-month-filter" multiple class="w-full">
                                 <option value="01">Januari</option>
                                 <option value="02">Februari</option>
                                 <option value="03">Maret</option>
@@ -344,18 +386,16 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
-                            <select id="poli-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Semua Tahun</option>
+                            <select id="poli-year-filter" multiple class="w-full">
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
-                            <select id="poli-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Semua Jaminan</option>
+                            <select id="poli-insurance-filter" multiple class="w-full">
                             </select>
                         </div>
                     </div>
-                    <div class="flex justify-end space-x-2 mt-4">
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
                         <button onclick="applyPoliklinikFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
                             🔍 Terapkan Filter
                         </button>
@@ -392,36 +432,31 @@
                 </div>
             </div>
 
-            <!-- Detail Data Table for Poliklinik -->
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">🏥 Data Detail Kunjungan Poliklinik</h2>
-                            <p class="text-blue-100 mt-2">Data lengkap kunjungan poliklinik dari tahun 2022 hingga terbaru</p>
+            <!-- Charts Section for Poliklinik -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Monthly Visits Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">📈 Kunjungan per Bulan</h3>
+                        <p class="text-blue-100 mt-1 text-sm">Grafik kunjungan poliklinik bulanan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="poliMonthlyChart"></canvas>
                         </div>
-                        <button onclick="refreshPoliklinikData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
-                            <span id="refresh-poli-text">🔄 Refresh</span>
-                            <span id="refresh-poli-loading" class="loading hidden ml-2"></span>
-                        </button>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-blue-800 sticky top-0">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="poliklinik-table" class="bg-white divide-y divide-gray-200">
-                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
-                            </tbody>
-                        </table>
+                
+                <!-- Insurance Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">🥧 Distribusi Jaminan</h3>
+                        <p class="text-blue-100 mt-1 text-sm">Persentase kunjungan berdasarkan jaminan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="poliInsuranceChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -431,11 +466,11 @@
         <div id="mcu" class="tab-content">
             <!-- Filter Section for MCU -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
-                <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-4">
+                <div class="bg-gradient-to-r from-green-600 to-green-800 px-4 sm:px-6 py-4">
                     <h3 class="text-lg font-bold text-white">🔍 Filter Data MCU</h3>
                 </div>
                 <div class="p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
                             <input type="date" id="mcu-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
@@ -446,8 +481,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
-                            <select id="mcu-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                <option value="">Semua Bulan</option>
+                            <select id="mcu-month-filter" multiple class="w-full">
                                 <option value="01">Januari</option>
                                 <option value="02">Februari</option>
                                 <option value="03">Maret</option>
@@ -464,18 +498,16 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
-                            <select id="mcu-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                <option value="">Semua Tahun</option>
+                            <select id="mcu-year-filter" multiple class="w-full">
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
-                            <select id="mcu-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                <option value="">Semua Jaminan</option>
+                            <select id="mcu-insurance-filter" multiple class="w-full">
                             </select>
                         </div>
                     </div>
-                    <div class="flex justify-end space-x-2 mt-4">
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
                         <button onclick="applyMCUFilters()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
                             🔍 Terapkan Filter
                         </button>
@@ -488,20 +520,27 @@
 
             <!-- Monthly Recap Table for MCU -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
-                <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
-                    <h3 class="text-xl font-bold text-white">📊 Rekap Bulanan MCU</h3>
-                    <p class="text-green-100 mt-1">Ringkasan kunjungan per bulan</p>
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-4 sm:px-6 py-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-bold text-white">📊 Rekap Bulanan MCU</h3>
+                            <p class="text-green-100 mt-1 text-sm">Ringkasan kunjungan per bulan</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 text-white">
+                            <span class="text-sm">Total: <span id="mcu-monthly-total" class="font-bold">0</span> data</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
+                <div class="p-4 sm:p-6">
+                    <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-green-800 sticky top-0">
+                            <thead class="bg-green-800">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
                                 </tr>
                             </thead>
                             <tbody id="mcu-monthly-table" class="bg-white divide-y divide-gray-200">
@@ -509,39 +548,49 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 space-y-2 sm:space-y-0">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan <span id="mcu-showing-start">0</span> - <span id="mcu-showing-end">0</span> dari <span id="mcu-showing-total">0</span> data
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="mcu-prev-btn" onclick="changeMCUPage(-1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                ← Sebelumnya
+                            </button>
+                            <span id="mcu-page-info" class="px-3 py-1 text-sm text-gray-700">Halaman 1 dari 1</span>
+                            <button id="mcu-next-btn" onclick="changeMCUPage(1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                Selanjutnya →
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Detail Data Table for MCU -->
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div class="bg-gradient-to-r from-green-600 to-green-700 px-8 py-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">🔬 Data Detail Kunjungan Medical Check Up</h2>
-                            <p class="text-green-100 mt-2">Data lengkap kunjungan MCU dari tahun 2022 hingga terbaru</p>
+            <!-- Charts Section for MCU -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Monthly Visits Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-600 to-green-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">📈 Kunjungan per Bulan</h3>
+                        <p class="text-green-100 mt-1 text-sm">Grafik kunjungan MCU bulanan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="mcuMonthlyChart"></canvas>
                         </div>
-                        <button onclick="refreshMCUData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
-                            <span id="refresh-mcu-text">🔄 Refresh</span>
-                            <span id="refresh-mcu-loading" class="loading hidden ml-2"></span>
-                        </button>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-green-800 sticky top-0">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="mcu-table" class="bg-white divide-y divide-gray-200">
-                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
-                            </tbody>
-                        </table>
+                
+                <!-- Insurance Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-600 to-green-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">🥧 Distribusi Jaminan</h3>
+                        <p class="text-green-100 mt-1 text-sm">Persentase kunjungan berdasarkan jaminan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="mcuInsuranceChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -551,11 +600,11 @@
         <div id="igd" class="tab-content">
             <!-- Filter Section for IGD -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
-                <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
+                <div class="bg-gradient-to-r from-red-600 to-red-800 px-4 sm:px-6 py-4">
                     <h3 class="text-lg font-bold text-white">🔍 Filter Data IGD</h3>
                 </div>
                 <div class="p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
                             <input type="date" id="igd-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
@@ -566,8 +615,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
-                            <select id="igd-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Semua Bulan</option>
+                            <select id="igd-month-filter" multiple class="w-full">
                                 <option value="01">Januari</option>
                                 <option value="02">Februari</option>
                                 <option value="03">Maret</option>
@@ -584,18 +632,16 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
-                            <select id="igd-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Semua Tahun</option>
+                            <select id="igd-year-filter" multiple class="w-full">
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
-                            <select id="igd-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Semua Jaminan</option>
+                            <select id="igd-insurance-filter" multiple class="w-full">
                             </select>
                         </div>
                     </div>
-                    <div class="flex justify-end space-x-2 mt-4">
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
                         <button onclick="applyIGDFilters()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
                             🔍 Terapkan Filter
                         </button>
@@ -608,20 +654,27 @@
 
             <!-- Monthly Recap Table for IGD -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
-                <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-                    <h3 class="text-xl font-bold text-white">📊 Rekap Bulanan IGD</h3>
-                    <p class="text-red-100 mt-1">Ringkasan kunjungan per bulan</p>
+                <div class="bg-gradient-to-r from-red-600 to-red-700 px-4 sm:px-6 py-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-bold text-white">📊 Rekap Bulanan IGD</h3>
+                            <p class="text-red-100 mt-1 text-sm">Ringkasan kunjungan per bulan</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 text-white">
+                            <span class="text-sm">Total: <span id="igd-monthly-total" class="font-bold">0</span> data</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
+                <div class="p-4 sm:p-6">
+                    <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-red-800 sticky top-0">
+                            <thead class="bg-red-800">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
                                 </tr>
                             </thead>
                             <tbody id="igd-monthly-table" class="bg-white divide-y divide-gray-200">
@@ -629,39 +682,49 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 space-y-2 sm:space-y-0">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan <span id="igd-showing-start">0</span> - <span id="igd-showing-end">0</span> dari <span id="igd-showing-total">0</span> data
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="igd-prev-btn" onclick="changeIGDPage(-1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                ← Sebelumnya
+                            </button>
+                            <span id="igd-page-info" class="px-3 py-1 text-sm text-gray-700">Halaman 1 dari 1</span>
+                            <button id="igd-next-btn" onclick="changeIGDPage(1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                Selanjutnya →
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Detail Data Table for IGD -->
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div class="bg-gradient-to-r from-red-600 to-red-700 px-8 py-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">🚨 Data Detail Kunjungan Instalasi Gawat Darurat</h2>
-                            <p class="text-red-100 mt-2">Data lengkap kunjungan IGD dari tahun 2022 hingga terbaru</p>
+            <!-- Charts Section for IGD -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Monthly Visits Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-red-600 to-red-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">📈 Kunjungan per Bulan</h3>
+                        <p class="text-red-100 mt-1 text-sm">Grafik kunjungan IGD bulanan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="igdMonthlyChart"></canvas>
                         </div>
-                        <button onclick="refreshIGDData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
-                            <span id="refresh-igd-text">🔄 Refresh</span>
-                            <span id="refresh-igd-loading" class="loading hidden ml-2"></span>
-                        </button>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-red-800 sticky top-0">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="igd-table" class="bg-white divide-y divide-gray-200">
-                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
-                            </tbody>
-                        </table>
+                
+                <!-- Insurance Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-red-600 to-red-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">🥧 Distribusi Jaminan</h3>
+                        <p class="text-red-100 mt-1 text-sm">Persentase kunjungan berdasarkan jaminan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="igdInsuranceChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -671,11 +734,11 @@
         <div id="rawat-inap" class="tab-content">
             <!-- Filter Section for Rawat Inap -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
-                <div class="bg-gradient-to-r from-purple-600 to-purple-800 px-6 py-4">
+                <div class="bg-gradient-to-r from-purple-600 to-purple-800 px-4 sm:px-6 py-4">
                     <h3 class="text-lg font-bold text-white">🔍 Filter Data Rawat Inap</h3>
                 </div>
                 <div class="p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
                             <input type="date" id="ri-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
@@ -686,8 +749,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label>
-                            <select id="ri-month-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                                <option value="">Semua Bulan</option>
+                            <select id="ri-month-filter" multiple class="w-full">
                                 <option value="01">Januari</option>
                                 <option value="02">Februari</option>
                                 <option value="03">Maret</option>
@@ -704,18 +766,16 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
-                            <select id="ri-year-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                                <option value="">Semua Tahun</option>
+                            <select id="ri-year-filter" multiple class="w-full">
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Jaminan</label>
-                            <select id="ri-insurance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                                <option value="">Semua Jaminan</option>
+                            <select id="ri-insurance-filter" multiple class="w-full">
                             </select>
                         </div>
                     </div>
-                    <div class="flex justify-end space-x-2 mt-4">
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
                         <button onclick="applyRawatInapFilters()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
                             🔍 Terapkan Filter
                         </button>
@@ -728,20 +788,27 @@
 
             <!-- Monthly Recap Table for Rawat Inap -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
-                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
-                    <h3 class="text-xl font-bold text-white">📊 Rekap Bulanan Rawat Inap</h3>
-                    <p class="text-purple-100 mt-1">Ringkasan kunjungan per bulan</p>
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-4 sm:px-6 py-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-bold text-white">📊 Rekap Bulanan Rawat Inap</h3>
+                            <p class="text-purple-100 mt-1 text-sm">Ringkasan kunjungan per bulan</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 text-white">
+                            <span class="text-sm">Total: <span id="ri-monthly-total" class="font-bold">0</span> data</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
+                <div class="p-4 sm:p-6">
+                    <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-purple-800 sticky top-0">
+                            <thead class="bg-purple-800">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bulan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Laki-laki</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Perempuan</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                    <th class="px-3 sm:px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Rata-rata/Hari</th>
                                 </tr>
                             </thead>
                             <tbody id="ri-monthly-table" class="bg-white divide-y divide-gray-200">
@@ -749,40 +816,49 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 space-y-2 sm:space-y-0">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan <span id="ri-showing-start">0</span> - <span id="ri-showing-end">0</span> dari <span id="ri-showing-total">0</span> data
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="ri-prev-btn" onclick="changeRawatInapPage(-1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                ← Sebelumnya
+                            </button>
+                            <span id="ri-page-info" class="px-3 py-1 text-sm text-gray-700">Halaman 1 dari 1</span>
+                            <button id="ri-next-btn" onclick="changeRawatInapPage(1)" class="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded hover:bg-gray-300 disabled:opacity-50">
+                                Selanjutnya →
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Detail Data Table for Rawat Inap -->
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">🛏️ Data Detail Kunjungan Rawat Inap</h2>
-                            <p class="text-purple-100 mt-2">Data lengkap kunjungan rawat inap dari tahun 2022 hingga terbaru</p>
+            <!-- Charts Section for Rawat Inap -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Monthly Visits Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">📈 Kunjungan per Bulan</h3>
+                        <p class="text-purple-100 mt-1 text-sm">Grafik kunjungan rawat inap bulanan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="riMonthlyChart"></canvas>
                         </div>
-                        <button onclick="refreshRawatInapData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">
-                            <span id="refresh-ri-text">🔄 Refresh</span>
-                            <span id="refresh-ri-loading" class="loading hidden ml-2"></span>
-                        </button>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="table-container">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-purple-800 sticky top-0">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Tanggal</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Kelas</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Jaminan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">L</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">P</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grand Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rawat-inap-table" class="bg-white divide-y divide-gray-200">
-                                <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">🔄 Memuat data dari Google Sheets...</td></tr>
-                            </tbody>
-                        </table>
+                
+                <!-- Insurance Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-4 sm:px-6 py-4">
+                        <h3 class="text-lg sm:text-xl font-bold text-white">🥧 Distribusi Jaminan</h3>
+                        <p class="text-purple-100 mt-1 text-sm">Persentase kunjungan berdasarkan jaminan</p>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="h-64 sm:h-80">
+                            <canvas id="riInsuranceChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -815,6 +891,32 @@
         let filteredData = {};
         let yearlyChart = null;
         let serviceChart = null;
+        
+        // Multi-select instances
+        let choicesInstances = {};
+        
+        // Pagination variables
+        const ITEMS_PER_PAGE = 10;
+        let currentPages = {
+            yearly: 1,
+            service: 1,
+            poliMonthly: 1,
+            mcuMonthly: 1,
+            igdMonthly: 1,
+            riMonthly: 1
+        };
+        
+        // Chart instances for individual tabs
+        let tabCharts = {
+            poliMonthly: null,
+            poliInsurance: null,
+            mcuMonthly: null,
+            mcuInsurance: null,
+            igdMonthly: null,
+            igdInsurance: null,
+            riMonthly: null,
+            riInsurance: null
+        };
 
         // Tab functionality
         function showTab(tabName) {
@@ -916,6 +1018,34 @@
             updateDashboard();
         }
 
+        // Initialize multi-select dropdowns
+        function initializeMultiSelect() {
+            const selectElements = [
+                'month-filter', 'year-filter', 'insurance-filter',
+                'poli-month-filter', 'poli-year-filter', 'poli-insurance-filter',
+                'mcu-month-filter', 'mcu-year-filter', 'mcu-insurance-filter',
+                'igd-month-filter', 'igd-year-filter', 'igd-insurance-filter',
+                'ri-month-filter', 'ri-year-filter', 'ri-insurance-filter'
+            ];
+
+            selectElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element && !choicesInstances[id]) {
+                    choicesInstances[id] = new Choices(element, {
+                        removeItemButton: true,
+                        searchEnabled: true,
+                        searchPlaceholderValue: 'Cari...',
+                        noResultsText: 'Tidak ada hasil',
+                        noChoicesText: 'Tidak ada pilihan',
+                        itemSelectText: 'Tekan untuk memilih',
+                        placeholderValue: 'Pilih opsi...',
+                        searchResultLimit: 10,
+                        shouldSort: false
+                    });
+                }
+            });
+        }
+
         // Populate filter dropdown options
         function populateFilterOptions() {
             const allRecords = [];
@@ -927,19 +1057,21 @@
 
             // Populate year filter for main tab
             const years = [...new Set(allRecords.map(r => r.Tahun))].filter(y => y).sort();
-            const yearSelect = document.getElementById('year-filter');
-            yearSelect.innerHTML = '<option value="">Semua Tahun</option>';
-            years.forEach(year => {
-                yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
-            });
+            if (choicesInstances['year-filter']) {
+                choicesInstances['year-filter'].clearStore();
+                years.forEach(year => {
+                    choicesInstances['year-filter'].setChoices([{value: year, label: year}], 'value', 'label', false);
+                });
+            }
 
             // Populate insurance filter for main tab
             const insurances = [...new Set(allRecords.map(r => r.JAMINAN || r.Jaminan).filter(j => j))].sort();
-            const insuranceSelect = document.getElementById('insurance-filter');
-            insuranceSelect.innerHTML = '<option value="">Semua Jaminan</option>';
-            insurances.forEach(insurance => {
-                insuranceSelect.innerHTML += `<option value="${insurance}">${insurance}</option>`;
-            });
+            if (choicesInstances['insurance-filter']) {
+                choicesInstances['insurance-filter'].clearStore();
+                insurances.forEach(insurance => {
+                    choicesInstances['insurance-filter'].setChoices([{value: insurance, label: insurance}], 'value', 'label', false);
+                });
+            }
 
             // Populate individual tab filters
             populateIndividualTabFilters();
@@ -1027,9 +1159,9 @@
         function applyFilters() {
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
-            const month = document.getElementById('month-filter').value;
-            const year = document.getElementById('year-filter').value;
-            const insurance = document.getElementById('insurance-filter').value;
+            const months = choicesInstances['month-filter'] ? choicesInstances['month-filter'].getValue(true) : [];
+            const years = choicesInstances['year-filter'] ? choicesInstances['year-filter'].getValue(true) : [];
+            const insurances = choicesInstances['insurance-filter'] ? choicesInstances['insurance-filter'].getValue(true) : [];
             const service = document.getElementById('service-filter').value;
             const gender = document.getElementById('gender-filter').value;
 
@@ -1044,23 +1176,27 @@
                     if (endDate && record.Tanggal > endDate) return false;
                     
                     // Month filter
-                    if (month && record.Tanggal) {
+                    if (months.length > 0 && record.Tanggal) {
                         const recordMonth = record.Tanggal.split('-')[1];
-                        if (recordMonth !== month) return false;
+                        if (!months.includes(recordMonth)) return false;
                     }
                     
                     // Year filter
-                    if (year && record.Tahun !== year) return false;
+                    if (years.length > 0 && !years.includes(record.Tahun)) return false;
                     
                     // Insurance filter
-                    if (insurance) {
+                    if (insurances.length > 0) {
                         const recordInsurance = record.JAMINAN || record.Jaminan;
-                        if (recordInsurance !== insurance) return false;
+                        if (!insurances.includes(recordInsurance)) return false;
                     }
                     
                     return true;
                 });
             });
+
+            // Reset pagination
+            currentPages.yearly = 1;
+            currentPages.service = 1;
 
             updateDashboard();
             showConnectionStatus('✅ Filter berhasil diterapkan', 'bg-green-500');
@@ -1071,11 +1207,17 @@
         function resetFilters() {
             document.getElementById('start-date').value = '';
             document.getElementById('end-date').value = '';
-            document.getElementById('month-filter').value = '';
-            document.getElementById('year-filter').value = '';
-            document.getElementById('insurance-filter').value = '';
             document.getElementById('service-filter').value = '';
             document.getElementById('gender-filter').value = '';
+            
+            // Reset multi-select dropdowns
+            if (choicesInstances['month-filter']) choicesInstances['month-filter'].removeActiveItems();
+            if (choicesInstances['year-filter']) choicesInstances['year-filter'].removeActiveItems();
+            if (choicesInstances['insurance-filter']) choicesInstances['insurance-filter'].removeActiveItems();
+            
+            // Reset pagination
+            currentPages.yearly = 1;
+            currentPages.service = 1;
             
             filteredData = JSON.parse(JSON.stringify(allData));
             updateDashboard();
@@ -2177,13 +2319,205 @@
             }, 1000);
         }
 
+        // Pagination functions
+        function changeYearlyPage(direction) {
+            currentPages.yearly += direction;
+            updateYearlySummaryTable();
+        }
+
+        function changeServicePage(direction) {
+            currentPages.service += direction;
+            updateServiceComparisonTable();
+        }
+
+        function changeMCUPage(direction) {
+            currentPages.mcuMonthly += direction;
+            updateMCUMonthlyTable(filteredMCUData);
+        }
+
+        function changeIGDPage(direction) {
+            currentPages.igdMonthly += direction;
+            updateIGDMonthlyTable(filteredIGDData);
+        }
+
+        function changeRawatInapPage(direction) {
+            currentPages.riMonthly += direction;
+            updateRawatInapMonthlyTable(filteredRawatInapData);
+        }
+
+        function updatePaginationInfo(prefix, currentPage, totalPages, totalItems, startItem, endItem) {
+            document.getElementById(`${prefix}-page-info`).textContent = `Halaman ${currentPage} dari ${totalPages}`;
+            document.getElementById(`${prefix}-showing-start`).textContent = startItem;
+            document.getElementById(`${prefix}-showing-end`).textContent = endItem;
+            document.getElementById(`${prefix}-showing-total`).textContent = totalItems;
+            
+            const prevBtn = document.getElementById(`${prefix}-prev-btn`);
+            const nextBtn = document.getElementById(`${prefix}-next-btn`);
+            
+            if (prevBtn) prevBtn.disabled = currentPage <= 1;
+            if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        // Initialize multi-select and charts for individual tabs
+        function initializeTabCharts() {
+            // Initialize charts for each tab
+            updatePoliklinikCharts(filteredPoliklinikData);
+            updateMCUCharts(filteredMCUData);
+            updateIGDCharts(filteredIGDData);
+            updateRawatInapCharts(filteredRawatInapData);
+        }
+
+        // Chart update functions for individual tabs
+        function updatePoliklinikCharts(data) {
+            updateMonthlyChart('poliMonthlyChart', data, 'poliMonthly', '#3B82F6');
+            updateInsuranceChart('poliInsuranceChart', data, 'poliInsurance');
+        }
+
+        function updateMCUCharts(data) {
+            updateMonthlyChart('mcuMonthlyChart', data, 'mcuMonthly', '#10B981');
+            updateInsuranceChart('mcuInsuranceChart', data, 'mcuInsurance');
+        }
+
+        function updateIGDCharts(data) {
+            updateMonthlyChart('igdMonthlyChart', data, 'igdMonthly', '#EF4444');
+            updateInsuranceChart('igdInsuranceChart', data, 'igdInsurance');
+        }
+
+        function updateRawatInapCharts(data) {
+            updateMonthlyChart('riMonthlyChart', data, 'riMonthly', '#8B5CF6');
+            updateInsuranceChart('riInsuranceChart', data, 'riInsurance');
+        }
+
+        function updateMonthlyChart(canvasId, data, chartKey, color) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            
+            // Destroy existing chart
+            if (tabCharts[chartKey]) {
+                tabCharts[chartKey].destroy();
+            }
+
+            // Prepare monthly data
+            const monthlyData = {};
+            data.forEach(record => {
+                if (record.Tanggal) {
+                    const monthYear = record.Tanggal.substring(0, 7);
+                    if (!monthlyData[monthYear]) {
+                        monthlyData[monthYear] = 0;
+                    }
+                    
+                    const grandTotal = parseFloat(record['Grand Total']) || 0;
+                    const male = parseFloat(record.L) || 0;
+                    const female = parseFloat(record.P) || 0;
+                    monthlyData[monthYear] += grandTotal > 0 ? grandTotal : (male + female);
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            const values = months.map(month => monthlyData[month]);
+            const labels = months.map(month => formatMonthYear(month));
+
+            tabCharts[chartKey] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Kunjungan',
+                        data: values,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateInsuranceChart(canvasId, data, chartKey) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            
+            // Destroy existing chart
+            if (tabCharts[chartKey]) {
+                tabCharts[chartKey].destroy();
+            }
+
+            // Prepare insurance data
+            const insuranceData = {};
+            data.forEach(record => {
+                const insurance = record.JAMINAN || record.Jaminan || 'Tidak Diketahui';
+                if (!insuranceData[insurance]) {
+                    insuranceData[insurance] = 0;
+                }
+                
+                const grandTotal = parseFloat(record['Grand Total']) || 0;
+                const male = parseFloat(record.L) || 0;
+                const female = parseFloat(record.P) || 0;
+                insuranceData[insurance] += grandTotal > 0 ? grandTotal : (male + female);
+            });
+
+            const labels = Object.keys(insuranceData);
+            const values = Object.values(insuranceData);
+            const colors = ['#3B82F6', '#10B981', '#EF4444', '#8B5CF6', '#F59E0B', '#EC4899'];
+
+            tabCharts[chartKey] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            initializeMultiSelect();
             loadFromGoogleSheets();
             
             // Auto refresh every 5 minutes
             setInterval(loadFromGoogleSheets, 300000);
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ccee8682be9d1a',t:'MTc1NDgwMjA0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ce8e723698fe00',t:'MTc1NDgxOTA4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
