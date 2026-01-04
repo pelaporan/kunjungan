@@ -7,10 +7,69 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
         body {
             box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
         }
+        
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: linear-gradient(to bottom right, #1F2937, #111827);
+            color: #F9FAFB;
+        }
+        body.dark-mode .bg-white {
+            background-color: #1F2937 !important;
+        }
+        body.dark-mode .text-gray-800 {
+            color: #F9FAFB !important;
+        }
+        body.dark-mode .text-gray-700 {
+            color: #D1D5DB !important;
+        }
+        body.dark-mode .text-gray-600 {
+            color: #9CA3AF !important;
+        }
+        body.dark-mode .text-gray-900 {
+            color: #F3F4F6 !important;
+        }
+        body.dark-mode .text-gray-500 {
+            color: #9CA3AF !important;
+        }
+        body.dark-mode .bg-gray-50 {
+            background-color: #374151 !important;
+        }
+        body.dark-mode .bg-gray-100 {
+            background-color: #4B5563 !important;
+        }
+        body.dark-mode .border-gray-200 {
+            border-color: #4B5563 !important;
+        }
+        body.dark-mode .border-gray-300 {
+            border-color: #6B7280 !important;
+        }
+        body.dark-mode .divide-gray-200 > * {
+            border-color: #4B5563 !important;
+        }
+        body.dark-mode .hover\:bg-gray-50:hover {
+            background-color: #374151 !important;
+        }
+        body.dark-mode .filter-dropdown-content {
+            background-color: #1F2937;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+        body.dark-mode .filter-option:hover {
+            background-color: #374151;
+        }
+        body.dark-mode input[type="text"],
+        body.dark-mode button:not(.tab-button):not(.tab-button.active) {
+            background-color: #374151;
+            color: #F9FAFB;
+            border-color: #6B7280;
+        }
+        
         .tab-button {
             background: #E5E7EB;
             color: #4B5563;
@@ -22,6 +81,14 @@
         .tab-button:hover:not(.active) {
             background: #D1D5DB;
         }
+        body.dark-mode .tab-button {
+            background: #4B5563;
+            color: #D1D5DB;
+        }
+        body.dark-mode .tab-button:hover:not(.active) {
+            background: #6B7280;
+        }
+        
         .tab-content {
             display: none;
         }
@@ -56,6 +123,46 @@
         .filter-option:hover {
             background-color: #F3F4F6;
         }
+        
+        /* Animated Counter */
+        .counter {
+            display: inline-block;
+        }
+        
+        /* Chart Comparison Mode */
+        .comparison-mode {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            overflow: auto;
+            padding: 20px;
+        }
+        .comparison-mode.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .comparison-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: auto;
+            max-width: 1400px;
+            width: 100%;
+        }
+        body.dark-mode .comparison-content {
+            background: #1F2937;
+        }
+        
+        /* Enhanced Tooltips */
+        .chart-container {
+            position: relative;
+        }
+        
         @media print {
             body * {
                 visibility: hidden;
@@ -79,8 +186,14 @@
   <div class="w-full h-full overflow-auto">
    <div class="container-wrapper mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-full"><!-- Header -->
     <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
-     <h1 id="dashboard-title" class="text-2xl sm:text-3xl font-bold text-white mb-2">Dashboard Kunjungan Pasien</h1>
-     <p id="dashboard-subtitle" class="text-sm sm:text-base text-white opacity-90">Analisis Data Kunjungan</p><!-- Tab Navigation -->
+     <div class="flex justify-between items-start mb-2">
+      <div>
+       <h1 id="dashboard-title" class="text-2xl sm:text-3xl font-bold text-white mb-2">Dashboard Kunjungan Pasien</h1>
+       <p id="dashboard-subtitle" class="text-sm sm:text-base text-white opacity-90">Analisis Data Kunjungan</p>
+      </div>
+      <div class="flex gap-2"><!-- Dark Mode Toggle --> <button onclick="toggleDarkMode()" class="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all" title="Toggle Dark Mode"> <span id="dark-mode-icon">🌙</span> </button> <!-- Export Full PDF --> <button onclick="exportFullDashboard()" class="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all text-sm font-medium hidden sm:block" title="Export Full Dashboard"> 📄 Export All </button> <!-- Comparison Mode --> <button onclick="openComparisonMode()" class="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all text-sm font-medium hidden sm:block" title="Compare Charts"> 📊 Compare </button>
+      </div>
+     </div><!-- Tab Navigation -->
      <div class="flex gap-2 mt-4 flex-wrap"><button onclick="switchTab('overview')" id="tab-overview" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📊 Overview </button> <button onclick="switchTab('pelayanan')" id="tab-pelayanan" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 🏥 Pelayanan </button> <button onclick="switchTab('status')" id="tab-status" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📋 Status </button> <button onclick="switchTab('analisa')" id="tab-analisa" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📈 Analisa </button>
      </div>
     </div><!-- Loading State -->
@@ -164,7 +277,7 @@
          <svg class="w-6 h-6 sm:w-7 sm:h-7 opacity-80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
          </svg>
         </div>
-        <p id="kpi-total" class="text-xl sm:text-2xl font-bold">0</p>
+        <p id="kpi-total" class="text-xl sm:text-2xl font-bold counter">0</p>
        </div>
        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-4 sm:p-5 text-white">
         <div class="flex items-center justify-between mb-2">
@@ -172,7 +285,7 @@
          <svg class="w-6 h-6 sm:w-7 sm:h-7 opacity-80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
          </svg>
         </div>
-        <p id="kpi-poliklinik" class="text-xl sm:text-2xl font-bold">0</p>
+        <p id="kpi-poliklinik" class="text-xl sm:text-2xl font-bold counter">0</p>
        </div>
        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-4 sm:p-5 text-white">
         <div class="flex items-center justify-between mb-2">
@@ -180,7 +293,7 @@
          <svg class="w-6 h-6 sm:w-7 sm:h-7 opacity-80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
          </svg>
         </div>
-        <p id="kpi-mcu" class="text-xl sm:text-2xl font-bold">0</p>
+        <p id="kpi-mcu" class="text-xl sm:text-2xl font-bold counter">0</p>
        </div>
        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-4 sm:p-5 text-white">
         <div class="flex items-center justify-between mb-2">
@@ -188,7 +301,7 @@
          <svg class="w-6 h-6 sm:w-7 sm:h-7 opacity-80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
          </svg>
         </div>
-        <p id="kpi-igd" class="text-xl sm:text-2xl font-bold">0</p>
+        <p id="kpi-igd" class="text-xl sm:text-2xl font-bold counter">0</p>
        </div>
        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-4 sm:p-5 text-white">
         <div class="flex items-center justify-between mb-2">
@@ -196,11 +309,11 @@
          <svg class="w-6 h-6 sm:w-7 sm:h-7 opacity-80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
          </svg>
         </div>
-        <p id="kpi-rawat-inap" class="text-xl sm:text-2xl font-bold">0</p>
+        <p id="kpi-rawat-inap" class="text-xl sm:text-2xl font-bold counter">0</p>
        </div>
       </div><!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Tren Kunjungan</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-tren')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-tren', 'tren_kunjungan')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-tren', 'Tren Kunjungan')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
@@ -208,7 +321,7 @@
         </div>
         <canvas id="chart-tren"></canvas>
        </div>
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Top 10 Klinik</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-klinik')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-klinik', 'top_10_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-klinik', 'Top 10 Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
@@ -255,7 +368,7 @@
        </div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Jenis Kelamin</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-gender', 'jenis_kelamin')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-gender', 'Distribusi Jenis Kelamin')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
@@ -263,7 +376,7 @@
         </div>
         <canvas id="chart-gender"></canvas>
        </div>
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Cara Bayar</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-bayar', 'cara_bayar')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-bayar', 'Cara Bayar / Jaminan')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
@@ -328,7 +441,7 @@
      </div><!-- Tab Pelayanan -->
      <div id="content-pelayanan" class="tab-content">
       <div class="grid grid-cols-1 gap-4 sm:gap-6 mb-4 sm:mb-6">
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Jenis Pelayanan</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-jenis')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-pelayanan-jenis', 'pelayanan_jenis')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-jenis', 'Pelayanan Per Jenis')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
@@ -336,7 +449,7 @@
         </div>
         <canvas id="chart-pelayanan-jenis"></canvas>
        </div>
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Klinik (Top 15)</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-klinik')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-pelayanan-klinik', 'pelayanan_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-klinik', 'Pelayanan Per Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
@@ -404,7 +517,7 @@
      </div><!-- Tab Status -->
      <div id="content-status" class="tab-content">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Status Cara Bayar</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-status-bayar', 'status_bayar')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-status-bayar', 'Status Cara Bayar')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
@@ -412,7 +525,7 @@
         </div>
         <canvas id="chart-status-bayar"></canvas>
        </div>
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Status Jaminan</h3>
          <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-status-jaminan', 'status_jaminan')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-status-jaminan', 'Status Jaminan')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
@@ -479,7 +592,7 @@
       </div>
      </div><!-- Tab Analisa -->
      <div id="content-analisa" class="tab-content">
-      <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+      <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 chart-container">
        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h3 class="text-base sm:text-lg font-bold text-gray-800">Perbandingan Multi-Tahun</h3>
         <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-analisa', 'analisa_multi_tahun')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-analisa', 'Analisa Per Periode')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
@@ -510,6 +623,29 @@
      <p class="text-center text-sm text-gray-600">Dibuat oleh Tim Pelaporan RSUD Drs. H. Amri Tambunan © 2025</p>
     </footer>
    </div>
+  </div><!-- Chart Comparison Modal -->
+  <div id="comparison-modal" class="comparison-mode">
+   <div class="comparison-content">
+    <div class="flex justify-between items-center mb-4">
+     <h2 class="text-xl font-bold text-gray-800">Perbandingan Grafik</h2><button onclick="closeComparisonMode()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"> ✕ Tutup </button>
+    </div>
+    <div class="grid grid-cols-1 gap-4 mb-4">
+     <div><label class="block text-sm font-medium text-gray-700 mb-2">Pilih Grafik 1:</label> <select id="compare-chart-1" class="w-full px-4 py-2 border border-gray-300 rounded-lg"> <option value="">-- Pilih Grafik --</option> <option value="chart-tren">Tren Kunjungan</option> <option value="chart-klinik">Top 10 Klinik</option> <option value="chart-pelayanan-jenis">Pelayanan Per Jenis</option> <option value="chart-pelayanan-klinik">Pelayanan Per Klinik</option> <option value="chart-analisa">Analisa Multi-Tahun</option> </select>
+     </div>
+     <div><label class="block text-sm font-medium text-gray-700 mb-2">Pilih Grafik 2:</label> <select id="compare-chart-2" class="w-full px-4 py-2 border border-gray-300 rounded-lg"> <option value="">-- Pilih Grafik --</option> <option value="chart-tren">Tren Kunjungan</option> <option value="chart-klinik">Top 10 Klinik</option> <option value="chart-pelayanan-jenis">Pelayanan Per Jenis</option> <option value="chart-pelayanan-klinik">Pelayanan Per Klinik</option> <option value="chart-analisa">Analisa Multi-Tahun</option> </select>
+     </div><button onclick="renderComparison()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"> 🔄 Bandingkan </button>
+    </div>
+    <div id="comparison-result" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+     <div class="border border-gray-200 rounded-lg p-4">
+      <h3 class="font-bold mb-2 text-gray-800" id="title-compare-1">Grafik 1</h3>
+      <canvas id="canvas-compare-1"></canvas>
+     </div>
+     <div class="border border-gray-200 rounded-lg p-4">
+      <h3 class="font-bold mb-2 text-gray-800" id="title-compare-2">Grafik 2</h3>
+      <canvas id="canvas-compare-2"></canvas>
+     </div>
+    </div>
+   </div>
   </div>
   <script>
         Chart.register(ChartDataLabels);
@@ -518,7 +654,8 @@
         let rawData = [];
         let filteredData = [];
         let charts = {};
-        let chartTypes = {}; // Menyimpan tipe chart untuk setiap grafik
+        let chartTypes = {};
+        let comparisonCharts = {};
         const ITEMS_PER_PAGE = 10;
         let currentPage = 1;
         let searchQuery = '';
@@ -539,6 +676,197 @@
         const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
                             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('dark-mode-icon');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.textContent = '☀️';
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                icon.textContent = '🌙';
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        }
+
+        // Load dark mode preference
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('dark-mode-icon').textContent = '☀️';
+        }
+
+        // Animated Counter
+        function animateCounter(element, target) {
+            const duration = 1000;
+            const start = 0;
+            const increment = target / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(function() {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current).toLocaleString('id-ID');
+            }, 16);
+        }
+
+        // Export Full Dashboard
+        async function exportFullDashboard() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            
+            // Title
+            pdf.setFontSize(18);
+            pdf.setTextColor(59, 130, 246);
+            pdf.text('Dashboard Kunjungan Pasien - Full Report', pageWidth / 2, 15, { align: 'center' });
+            pdf.setFontSize(10);
+            pdf.setTextColor(100);
+            pdf.text('Generated: ' + new Date().toLocaleString('id-ID'), pageWidth / 2, 22, { align: 'center' });
+            
+            let yPos = 30;
+            
+            // Get all charts
+            const chartIds = ['chart-tren', 'chart-klinik', 'chart-gender', 'chart-bayar'];
+            
+            for (let i = 0; i < chartIds.length; i++) {
+                if (yPos > pageHeight - 80) {
+                    pdf.addPage();
+                    yPos = 20;
+                }
+                
+                const canvas = document.getElementById(chartIds[i]);
+                if (canvas) {
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = pageWidth - 20;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, yPos, imgWidth, Math.min(imgHeight, 60));
+                    yPos += Math.min(imgHeight, 60) + 10;
+                }
+            }
+            
+            pdf.save('dashboard_full_report_' + new Date().getTime() + '.pdf');
+        }
+
+        // Chart Comparison
+        function openComparisonMode() {
+            document.getElementById('comparison-modal').classList.add('active');
+        }
+
+        function closeComparisonMode() {
+            document.getElementById('comparison-modal').classList.remove('active');
+        }
+
+        function renderComparison() {
+            const chart1Id = document.getElementById('compare-chart-1').value;
+            const chart2Id = document.getElementById('compare-chart-2').value;
+            
+            if (!chart1Id || !chart2Id) {
+                alert('Pilih kedua grafik untuk dibandingkan');
+                return;
+            }
+            
+            // Clear previous comparison
+            if (comparisonCharts.compare1) comparisonCharts.compare1.destroy();
+            if (comparisonCharts.compare2) comparisonCharts.compare2.destroy();
+            
+            // Clone chart data
+            const originalChart1 = charts[chart1Id];
+            const originalChart2 = charts[chart2Id];
+            
+            if (!originalChart1 || !originalChart2) {
+                alert('Grafik tidak ditemukan. Pastikan grafik sudah dimuat.');
+                return;
+            }
+            
+            // Set titles
+            document.getElementById('title-compare-1').textContent = getChartTitle(chart1Id);
+            document.getElementById('title-compare-2').textContent = getChartTitle(chart2Id);
+            
+            // Render charts
+            const ctx1 = document.getElementById('canvas-compare-1').getContext('2d');
+            const ctx2 = document.getElementById('canvas-compare-2').getContext('2d');
+            
+            comparisonCharts.compare1 = new Chart(ctx1, {
+                type: originalChart1.config.type,
+                data: JSON.parse(JSON.stringify(originalChart1.config.data)),
+                options: JSON.parse(JSON.stringify(originalChart1.config.options))
+            });
+            
+            comparisonCharts.compare2 = new Chart(ctx2, {
+                type: originalChart2.config.type,
+                data: JSON.parse(JSON.stringify(originalChart2.config.data)),
+                options: JSON.parse(JSON.stringify(originalChart2.config.options))
+            });
+        }
+
+        function getChartTitle(chartId) {
+            const titles = {
+                'chart-tren': 'Tren Kunjungan',
+                'chart-klinik': 'Top 10 Klinik',
+                'chart-pelayanan-jenis': 'Pelayanan Per Jenis',
+                'chart-pelayanan-klinik': 'Pelayanan Per Klinik',
+                'chart-analisa': 'Analisa Multi-Tahun'
+            };
+            return titles[chartId] || 'Grafik';
+        }
+
+        // Enhanced Chart Options with Interactive Tooltips
+        function getEnhancedChartOptions(showValues, chartType = 'line') {
+            return {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        display: showValues,
+                        anchor: 'end',
+                        align: 'top',
+                        font: { weight: 'bold', size: 10 },
+                        formatter: function(v) { return v > 0 ? v.toLocaleString('id-ID') : ''; }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#3B82F6',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label || '';
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y.toLocaleString('id-ID');
+                                
+                                // Calculate percentage if applicable
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                                label += ' (' + percentage + '%)';
+                                
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: { y: { beginAtZero: true } },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                }
+            };
+        }
+
         // Toggle Chart Type
         function toggleChartType(chartId) {
             const currentType = chartTypes[chartId] || 'line';
@@ -551,7 +879,6 @@
             const dropdown = document.getElementById('dropdown-' + type);
             const isShow = dropdown.classList.contains('show');
             
-            // Close all dropdowns
             document.querySelectorAll('.filter-dropdown-content').forEach(function(d) {
                 d.classList.remove('show');
             });
@@ -561,7 +888,6 @@
             }
         }
 
-        // Close dropdowns when clicking outside
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.filter-dropdown')) {
                 document.querySelectorAll('.filter-dropdown-content').forEach(function(d) {
@@ -570,7 +896,6 @@
             }
         });
 
-        // Select all filter
         function selectAllFilter(type) {
             const checkAll = document.getElementById('check-all-' + type);
             const isChecked = checkAll.checked;
@@ -616,7 +941,6 @@
             applyFilters();
         }
 
-        // Toggle filter option
         function toggleFilterOption(type, value, event) {
             if (event) {
                 event.stopPropagation();
@@ -658,7 +982,6 @@
             applyFilters();
         }
 
-        // Update filter label
         function updateFilterLabel(type) {
             let selectedSet, label, allItems;
             
@@ -703,36 +1026,29 @@
             }
         }
 
-        // Reset all filters
         function resetAllFilters() {
-            // Reset semua Set ke default (semua dipilih)
             selectedTahun = new Set([...rawData.map(function(d) { return d.tahun; })].filter(function(t) { return t; }));
             selectedBulan = new Set(monthNames);
             selectedKlinik = new Set([...rawData.map(function(d) { return d.pelayanan; })].filter(function(p) { return p; }));
             selectedPelayanan = new Set([...rawData.map(function(d) { return d.jenisPelayanan; })].filter(function(p) { return p; }));
             selectedKelamin = new Set([...rawData.map(function(d) { return d.kelamin; })].filter(function(k) { return k; }));
             
-            // Reset semua checkbox
             const allCheckboxes = document.querySelectorAll('.filter-dropdown input[type="checkbox"]');
             allCheckboxes.forEach(function(cb) {
                 cb.checked = true;
             });
             
-            // Reset labels
             updateFilterLabel('tahun');
             updateFilterLabel('bulan');
             updateFilterLabel('klinik');
             updateFilterLabel('pelayanan');
             updateFilterLabel('kelamin');
             
-            // Reset toggle values
             document.getElementById('toggle-values').checked = false;
             
-            // Apply filters
             applyFilters();
         }
 
-        // Fetch data
         async function fetchData() {
             try {
                 const sheetId = '1IZkH2U4wGch0qUk1jn4q7CUWfsG6GxtrqD9kBsKN-HY';
@@ -794,9 +1110,7 @@
             }
         }
 
-        // Initialize filters
         function initializeFilters() {
-            // Tahun
             const tahunSet = [...new Set(rawData.map(function(d) { return d.tahun; }))].filter(function(t) { return t; }).sort(function(a, b) { return b - a; });
             selectedTahun = new Set(tahunSet);
             const optionsTahun = document.getElementById('options-tahun');
@@ -814,7 +1128,6 @@
                 optionsTahun.appendChild(div);
             });
             
-            // Bulan
             selectedBulan = new Set(monthNames);
             const optionsBulan = document.getElementById('options-bulan');
             optionsBulan.innerHTML = '';
@@ -831,7 +1144,6 @@
                 optionsBulan.appendChild(div);
             });
             
-            // Klinik
             const klinikSet = [...new Set(rawData.map(function(d) { return d.pelayanan; }))].filter(function(p) { return p; }).sort();
             selectedKlinik = new Set(klinikSet);
             const optionsKlinik = document.getElementById('options-klinik');
@@ -849,7 +1161,6 @@
                 optionsKlinik.appendChild(div);
             });
             
-            // Pelayanan
             const pelayananSet = [...new Set(rawData.map(function(d) { return d.jenisPelayanan; }))].filter(function(p) { return p; }).sort();
             selectedPelayanan = new Set(pelayananSet);
             const optionsPelayanan = document.getElementById('options-pelayanan');
@@ -867,7 +1178,6 @@
                 optionsPelayanan.appendChild(div);
             });
             
-            // Jenis Kelamin
             const kelaminSet = [...new Set(rawData.map(function(d) { return d.kelamin; }))].filter(function(k) { return k; }).sort();
             selectedKelamin = new Set(kelaminSet);
             const optionsKelamin = document.getElementById('options-kelamin');
@@ -911,7 +1221,6 @@
             });
         }
 
-        // Apply filters
         function applyFilters() {
             filteredData = rawData.filter(function(d) {
                 const tahunMatch = selectedTahun.size === 0 || selectedTahun.has(d.tahun);
@@ -927,7 +1236,6 @@
             updateCurrentTab();
         }
 
-        // Switch tab
         function switchTab(tabName) {
             currentTab = tabName;
             
@@ -944,7 +1252,6 @@
             updateCurrentTab();
         }
 
-        // Update current tab
         function updateCurrentTab() {
             if (currentTab === 'overview') {
                 updateOverviewTab();
@@ -957,19 +1264,17 @@
             }
         }
 
-        // Update Overview Tab
         function updateOverviewTab() {
             updateKPIs();
             updateTrendChart();
             updateKlinikChart();
-            updateServiceCharts(); // 4 grafik baru
+            updateServiceCharts();
             updateGenderChart();
             updateBayarChart();
             updateOverviewTable();
             updateTable();
         }
 
-        // Update KPIs
         function updateKPIs() {
             const total = filteredData.reduce(function(sum, d) { return sum + d.jumlah; }, 0);
             const poliklinik = filteredData.filter(function(d) { return d.jenisPelayanan === 'Poliklinik'; }).reduce(function(sum, d) { return sum + d.jumlah; }, 0);
@@ -977,14 +1282,13 @@
             const igd = filteredData.filter(function(d) { return d.jenisPelayanan === 'IGD'; }).reduce(function(sum, d) { return sum + d.jumlah; }, 0);
             const ri = filteredData.filter(function(d) { return d.jenisPelayanan === 'RI'; }).reduce(function(sum, d) { return sum + d.jumlah; }, 0);
             
-            document.getElementById('kpi-total').textContent = total.toLocaleString('id-ID');
-            document.getElementById('kpi-poliklinik').textContent = poliklinik.toLocaleString('id-ID');
-            document.getElementById('kpi-mcu').textContent = mcu.toLocaleString('id-ID');
-            document.getElementById('kpi-igd').textContent = igd.toLocaleString('id-ID');
-            document.getElementById('kpi-rawat-inap').textContent = ri.toLocaleString('id-ID');
+            animateCounter(document.getElementById('kpi-total'), total);
+            animateCounter(document.getElementById('kpi-poliklinik'), poliklinik);
+            animateCounter(document.getElementById('kpi-mcu'), mcu);
+            animateCounter(document.getElementById('kpi-igd'), igd);
+            animateCounter(document.getElementById('kpi-rawat-inap'), ri);
         }
 
-        // Update Trend Chart
         function updateTrendChart() {
             const ctx = document.getElementById('chart-tren').getContext('2d');
             const showValues = document.getElementById('toggle-values').checked;
@@ -1019,25 +1323,10 @@
                         fill: chartType === 'line'
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            display: showValues,
-                            anchor: 'end',
-                            align: 'top',
-                            font: { weight: 'bold', size: 10 },
-                            formatter: function(v) { return v > 0 ? v.toLocaleString('id-ID') : ''; }
-                        }
-                    },
-                    scales: { y: { beginAtZero: true } }
-                }
+                options: getEnhancedChartOptions(showValues, chartType)
             });
         }
 
-        // Update Klinik Chart
         function updateKlinikChart() {
             const ctx = document.getElementById('chart-klinik').getContext('2d');
             const showValues = document.getElementById('toggle-values').checked;
@@ -1065,25 +1354,10 @@
                         fill: chartType === 'line'
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            display: showValues,
-                            anchor: 'end',
-                            align: 'top',
-                            font: { weight: 'bold', size: 11 },
-                            formatter: function(v) { return v.toLocaleString('id-ID'); }
-                        }
-                    },
-                    scales: { y: { beginAtZero: true } }
-                }
+                options: getEnhancedChartOptions(showValues, chartType)
             });
         }
 
-        // Update 4 Service Charts (Poliklinik, MCU, IGD, RI)
         function updateServiceCharts() {
             const showValues = document.getElementById('toggle-values').checked;
             const services = ['Poliklinik', 'MCU', 'IGD', 'RI'];
@@ -1100,7 +1374,6 @@
                     periodeData[d.periode] = (periodeData[d.periode] || 0) + d.jumlah;
                 });
                 
-                // Tampilkan SEMUA data yang tersedia sesuai filter (tidak hanya 6 bulan)
                 const sorted = Object.entries(periodeData).sort(function(a, b) {
                     const bulanA = a[0].split(' ')[0];
                     const tahunA = a[0].split(' ')[1];
@@ -1140,6 +1413,16 @@
                                 align: 'top',
                                 font: { weight: 'bold', size: 9 },
                                 formatter: function(v) { return v > 0 ? v.toLocaleString('id-ID') : ''; }
+                            },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 10,
+                                callbacks: {
+                                    label: function(context) {
+                                        return service + ': ' + context.parsed.y.toLocaleString('id-ID');
+                                    }
+                                }
                             }
                         },
                         scales: { 
@@ -1156,7 +1439,6 @@
             });
         }
 
-        // Update Gender Chart
         function updateGenderChart() {
             const ctx = document.getElementById('chart-gender').getContext('2d');
             const showValues = document.getElementById('toggle-values').checked;
@@ -1190,13 +1472,22 @@
                             color: '#fff',
                             font: { weight: 'bold', size: 14 },
                             formatter: function(v) { return v.toLocaleString('id-ID'); }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed.toLocaleString('id-ID') + ' (' + percentage + '%)';
+                                }
+                            }
                         }
                     }
                 }
             });
         }
 
-        // Update Bayar Chart
         function updateBayarChart() {
             const ctx = document.getElementById('chart-bayar').getContext('2d');
             const showValues = document.getElementById('toggle-values').checked;
@@ -1232,6 +1523,16 @@
                             align: 'right',
                             font: { weight: 'bold', size: 11 },
                             formatter: function(v) { return v.toLocaleString('id-ID'); }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed.x / total) * 100).toFixed(1);
+                                    return 'Jumlah: ' + context.parsed.x.toLocaleString('id-ID') + ' (' + percentage + '%)';
+                                }
+                            }
                         }
                     },
                     scales: { x: { beginAtZero: true } }
@@ -1239,7 +1540,6 @@
             });
         }
 
-        // Update Overview Table
         function updateOverviewTable() {
             const jenisData = {};
             filteredData.forEach(function(d) {
@@ -1262,7 +1562,6 @@
             document.getElementById('total-overview').textContent = total.toLocaleString('id-ID');
         }
 
-        // Update Table
         function updateTable() {
             const searchLower = searchQuery.toLowerCase();
             let displayData = filteredData;
@@ -1296,7 +1595,6 @@
             document.getElementById('btn-next').disabled = currentPage >= totalPages;
         }
 
-        // Update Pelayanan Tab
         function updatePelayananTab() {
             const showValues = document.getElementById('toggle-values').checked;
             const chartTypeJenis = chartTypes['chart-pelayanan-jenis'] || 'bar';
@@ -1326,21 +1624,7 @@
                         fill: chartTypeJenis === 'line'
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            display: showValues,
-                            anchor: 'end',
-                            align: 'top',
-                            font: { weight: 'bold', size: 12 },
-                            formatter: function(v) { return v.toLocaleString('id-ID'); }
-                        }
-                    },
-                    scales: { y: { beginAtZero: true } }
-                }
+                options: getEnhancedChartOptions(showValues, chartTypeJenis)
             });
             
             const klinikData = {};
@@ -1379,6 +1663,15 @@
                             align: chartTypeKlinik === 'bar' ? 'right' : 'top',
                             font: { weight: 'bold', size: 11 },
                             formatter: function(v) { return v.toLocaleString('id-ID'); }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed.x / totalKlinik) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed.x.toLocaleString('id-ID') + ' (' + percentage + '%)';
+                                }
+                            }
                         }
                     },
                     scales: { 
@@ -1409,7 +1702,6 @@
             document.getElementById('total-pelayanan-klinik').textContent = totalKlinik.toLocaleString('id-ID');
         }
 
-        // Update Status Tab
         function updateStatusTab() {
             const showValues = document.getElementById('toggle-values').checked;
             
@@ -1443,6 +1735,14 @@
                             color: '#fff',
                             font: { weight: 'bold', size: 14 },
                             formatter: function(v) { return v.toLocaleString('id-ID'); }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / totalBayar) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed.toLocaleString('id-ID') + ' (' + percentage + '%)';
+                                }
+                            }
                         }
                     }
                 }
@@ -1478,6 +1778,14 @@
                             color: '#fff',
                             font: { weight: 'bold', size: 14 },
                             formatter: function(v) { return v.toLocaleString('id-ID'); }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / totalJaminan) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed.toLocaleString('id-ID') + ' (' + percentage + '%)';
+                                }
+                            }
                         }
                     }
                 }
@@ -1504,7 +1812,6 @@
             document.getElementById('total-status-jaminan').textContent = totalJaminan.toLocaleString('id-ID');
         }
 
-        // Update Analisa Tab
         function updateAnalisaTab() {
             const showValues = document.getElementById('toggle-values').checked;
             const chartType = chartTypes['chart-analisa'] || 'line';
@@ -1560,9 +1867,23 @@
                             align: 'top',
                             font: { weight: 'bold', size: 9 },
                             formatter: function(v) { return v > 0 ? v.toLocaleString('id-ID') : ''; }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toLocaleString('id-ID');
+                                }
+                            }
                         }
                     },
-                    scales: { y: { beginAtZero: true } }
+                    scales: { y: { beginAtZero: true } },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
                 }
             });
             
@@ -1596,7 +1917,6 @@
             tfoot.innerHTML = tfootHTML;
         }
 
-        // Download Chart
         function downloadChart(chartId, filename) {
             const canvas = document.getElementById(chartId);
             const url = canvas.toDataURL('image/png');
@@ -1606,7 +1926,6 @@
             link.click();
         }
 
-        // Export Chart PDF
         function exportChartPDF(chartId, title) {
             const canvas = document.getElementById(chartId);
             const imgData = canvas.toDataURL('image/png');
@@ -1616,7 +1935,6 @@
             printWindow.document.close();
         }
 
-        // Export Table CSV
         function exportTableToCSV(type) {
             let csv = [];
             let filename = '';
@@ -1705,7 +2023,6 @@
             link.click();
         }
 
-        // Export Table PDF
         function exportTableToPDF(type) {
             let title = '';
             let tableHTML = '';
@@ -1739,8 +2056,7 @@
             printWindow.document.close();
         }
 
-        // Initialize
         fetchData();
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8bef01e7c03d7d',t:'MTc2NzU0MjI2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8c070fa2dfdfc6',t:'MTc2NzU0MzI1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
