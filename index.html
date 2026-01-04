@@ -77,10 +77,10 @@
  </head>
  <body class="h-full w-full bg-gradient-to-br from-blue-50 to-green-50">
   <div class="w-full h-full overflow-auto">
-   <div class="container-wrapper mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl"><!-- Header -->
-    <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
-     <h1 id="dashboard-title" class="text-2xl sm:text-3xl font-bold text-blue-800 mb-2">Dashboard Kunjungan Pasien</h1>
-     <p id="dashboard-subtitle" class="text-sm sm:text-base text-gray-600">Analisis Data Kunjungan</p><!-- Tab Navigation -->
+   <div class="container-wrapper mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-full"><!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+     <h1 id="dashboard-title" class="text-2xl sm:text-3xl font-bold text-white mb-2">Dashboard Kunjungan Pasien</h1>
+     <p id="dashboard-subtitle" class="text-sm sm:text-base text-white opacity-90">Analisis Data Kunjungan</p><!-- Tab Navigation -->
      <div class="flex gap-2 mt-4 flex-wrap"><button onclick="switchTab('overview')" id="tab-overview" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📊 Overview </button> <button onclick="switchTab('pelayanan')" id="tab-pelayanan" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 🏥 Pelayanan </button> <button onclick="switchTab('status')" id="tab-status" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📋 Status </button> <button onclick="switchTab('analisa')" id="tab-analisa" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📈 Analisa </button>
      </div>
     </div><!-- Loading State -->
@@ -101,7 +101,7 @@
     <div id="main-content" class="hidden"><!-- Global Filters -->
      <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
       <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-4">Filter Data (Berlaku Untuk Semua Tab)</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4"><!-- Filter Tahun -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4"><!-- Filter Tahun -->
        <div class="filter-dropdown"><label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label> <button onclick="toggleDropdown('tahun')" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex justify-between items-center"> <span id="label-tahun" class="text-sm sm:text-base">Semua Tahun</span>
          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
          </svg></button>
@@ -141,8 +141,18 @@
          <div class="border-t border-gray-200"></div>
          <div id="options-pelayanan"></div>
         </div>
-       </div><!-- Toggle Values -->
-       <div class="flex items-end"><label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="toggle-values" checked class="w-5 h-5 text-blue-600 rounded"> <span class="text-sm font-medium text-gray-700">Tampilkan Angka</span> </label>
+       </div><!-- Filter Jenis Kelamin -->
+       <div class="filter-dropdown"><label class="block text-sm font-medium text-gray-700 mb-2">Jenis Kelamin</label> <button onclick="toggleDropdown('kelamin')" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex justify-between items-center"> <span id="label-kelamin" class="text-sm sm:text-base">Semua Gender</span>
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+         </svg></button>
+        <div id="dropdown-kelamin" class="filter-dropdown-content">
+         <div class="filter-option" onclick="selectAllFilter('kelamin')"><input type="checkbox" id="check-all-kelamin" checked> <label class="cursor-pointer font-medium">Pilih Semua</label>
+         </div>
+         <div class="border-t border-gray-200"></div>
+         <div id="options-kelamin"></div>
+        </div>
+       </div><!-- Toggle Values & Reset -->
+       <div class="flex flex-col gap-2 justify-end"><label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="toggle-values" class="w-5 h-5 text-blue-600 rounded"> <span class="text-sm font-medium text-gray-700">Tampilkan Angka</span> </label> <button onclick="resetAllFilters()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"> 🔄 Reset Filter </button>
        </div>
       </div>
      </div><!-- Tab Content: Overview -->
@@ -205,6 +215,35 @@
          </div>
         </div>
         <canvas id="chart-klinik"></canvas>
+       </div>
+      </div><!-- Distribusi Kunjungan Per Jenis Pelayanan -->
+      <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+       <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-4">Distribusi Kunjungan Pasien Berdasarkan Jenis Pelayanan</h3>
+       <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4"><!-- Poliklinik -->
+        <div class="border border-gray-200 rounded-lg p-4">
+         <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">Poliklinik</h4><button onclick="downloadChart('chart-poliklinik', 'poliklinik')" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"> 📊 </button>
+         </div>
+         <canvas id="chart-poliklinik"></canvas>
+        </div><!-- MCU -->
+        <div class="border border-gray-200 rounded-lg p-4">
+         <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">MCU</h4><button onclick="downloadChart('chart-mcu', 'mcu')" class="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"> 📊 </button>
+         </div>
+         <canvas id="chart-mcu"></canvas>
+        </div><!-- IGD -->
+        <div class="border border-gray-200 rounded-lg p-4">
+         <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">IGD</h4><button onclick="downloadChart('chart-igd', 'igd')" class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"> 📊 </button>
+         </div>
+         <canvas id="chart-igd"></canvas>
+        </div><!-- Rawat Inap -->
+        <div class="border border-gray-200 rounded-lg p-4">
+         <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">Rawat Inap</h4><button onclick="downloadChart('chart-ri', 'rawat_inap')" class="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"> 📊 </button>
+         </div>
+         <canvas id="chart-ri"></canvas>
+        </div>
        </div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
@@ -458,7 +497,10 @@
        </div>
       </div>
      </div>
-    </div>
+    </div><!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-8 py-4">
+     <p class="text-center text-sm text-gray-600">Dibuat oleh Tim Pelaporan RSUD Drs. H. Amri Tambunan © 2025</p>
+    </footer>
    </div>
   </div>
   <script>
@@ -478,6 +520,7 @@
         let selectedBulan = new Set();
         let selectedKlinik = new Set();
         let selectedPelayanan = new Set();
+        let selectedKelamin = new Set();
 
         const monthOrder = {
             'Januari': 1, 'Februari': 2, 'Maret': 3, 'April': 4, 'Mei': 5, 'Juni': 6,
@@ -545,8 +588,15 @@
                 } else {
                     selectedPelayanan.clear();
                 }
+            } else if (type === 'kelamin') {
+                if (isChecked) {
+                    selectedKelamin = new Set([...rawData.map(function(d) { return d.kelamin; })].filter(function(k) { return k; }));
+                } else {
+                    selectedKelamin.clear();
+                }
             }
             
+            updateFilterLabel(type);
             applyFilters();
         }
 
@@ -580,6 +630,12 @@
                 } else {
                     selectedPelayanan.add(value);
                 }
+            } else if (type === 'kelamin') {
+                if (selectedKelamin.has(value)) {
+                    selectedKelamin.delete(value);
+                } else {
+                    selectedKelamin.add(value);
+                }
             }
             
             updateFilterLabel(type);
@@ -606,15 +662,58 @@
                 selectedSet = selectedPelayanan;
                 allItems = [...new Set(rawData.map(function(d) { return d.jenisPelayanan; }))].filter(function(p) { return p; }).length;
                 label = document.getElementById('label-pelayanan');
+            } else if (type === 'kelamin') {
+                selectedSet = selectedKelamin;
+                allItems = [...new Set(rawData.map(function(d) { return d.kelamin; }))].filter(function(k) { return k; }).length;
+                label = document.getElementById('label-kelamin');
             }
             
-            if (selectedSet.size === 0 || selectedSet.size === allItems) {
-                label.textContent = 'Semua ' + type.charAt(0).toUpperCase() + type.slice(1);
-                document.getElementById('check-all-' + type).checked = true;
+            const checkAllId = 'check-all-' + type;
+            const checkAll = document.getElementById(checkAllId);
+            
+            if (selectedSet.size === 0) {
+                label.textContent = 'Tidak Ada';
+                if (checkAll) checkAll.checked = false;
+            } else if (selectedSet.size === allItems) {
+                if (type === 'tahun') label.textContent = 'Semua Tahun';
+                else if (type === 'bulan') label.textContent = 'Semua Bulan';
+                else if (type === 'klinik') label.textContent = 'Semua Klinik';
+                else if (type === 'pelayanan') label.textContent = 'Semua Pelayanan';
+                else if (type === 'kelamin') label.textContent = 'Semua Gender';
+                if (checkAll) checkAll.checked = true;
             } else {
                 label.textContent = selectedSet.size + ' dipilih';
-                document.getElementById('check-all-' + type).checked = false;
+                if (checkAll) checkAll.checked = false;
             }
+        }
+
+        // Reset all filters
+        function resetAllFilters() {
+            // Reset semua Set ke default (semua dipilih)
+            selectedTahun = new Set([...rawData.map(function(d) { return d.tahun; })].filter(function(t) { return t; }));
+            selectedBulan = new Set(monthNames);
+            selectedKlinik = new Set([...rawData.map(function(d) { return d.pelayanan; })].filter(function(p) { return p; }));
+            selectedPelayanan = new Set([...rawData.map(function(d) { return d.jenisPelayanan; })].filter(function(p) { return p; }));
+            selectedKelamin = new Set([...rawData.map(function(d) { return d.kelamin; })].filter(function(k) { return k; }));
+            
+            // Reset semua checkbox
+            const allCheckboxes = document.querySelectorAll('.filter-dropdown input[type="checkbox"]');
+            allCheckboxes.forEach(function(cb) {
+                cb.checked = true;
+            });
+            
+            // Reset labels
+            updateFilterLabel('tahun');
+            updateFilterLabel('bulan');
+            updateFilterLabel('klinik');
+            updateFilterLabel('pelayanan');
+            updateFilterLabel('kelamin');
+            
+            // Reset toggle values
+            document.getElementById('toggle-values').checked = false;
+            
+            // Apply filters
+            applyFilters();
         }
 
         // Fetch data
@@ -752,6 +851,24 @@
                 optionsPelayanan.appendChild(div);
             });
             
+            // Jenis Kelamin
+            const kelaminSet = [...new Set(rawData.map(function(d) { return d.kelamin; }))].filter(function(k) { return k; }).sort();
+            selectedKelamin = new Set(kelaminSet);
+            const optionsKelamin = document.getElementById('options-kelamin');
+            optionsKelamin.innerHTML = '';
+            kelaminSet.forEach(function(kelamin) {
+                const div = document.createElement('div');
+                div.className = 'filter-option';
+                div.onclick = function(e) {
+                    e.stopPropagation();
+                    const checkbox = this.querySelector('input');
+                    checkbox.checked = !checkbox.checked;
+                    toggleFilterOption('kelamin', kelamin, e);
+                };
+                div.innerHTML = '<input type="checkbox" id="check-kelamin-' + kelamin + '" value="' + kelamin + '" checked><label class="cursor-pointer">' + kelamin + '</label>';
+                optionsKelamin.appendChild(div);
+            });
+            
             document.getElementById('toggle-values').addEventListener('change', function() {
                 updateCurrentTab();
             });
@@ -785,8 +902,9 @@
                 const bulanMatch = selectedBulan.size === 0 || selectedBulan.has(d.bulan);
                 const klinikMatch = selectedKlinik.size === 0 || selectedKlinik.has(d.pelayanan);
                 const pelayananMatch = selectedPelayanan.size === 0 || selectedPelayanan.has(d.jenisPelayanan);
+                const kelaminMatch = selectedKelamin.size === 0 || selectedKelamin.has(d.kelamin);
                 
-                return tahunMatch && bulanMatch && klinikMatch && pelayananMatch;
+                return tahunMatch && bulanMatch && klinikMatch && pelayananMatch && kelaminMatch;
             });
             
             currentPage = 1;
@@ -828,6 +946,7 @@
             updateKPIs();
             updateTrendChart();
             updateKlinikChart();
+            updateServiceCharts(); // 4 grafik baru
             updateGenderChart();
             updateBayarChart();
             updateOverviewTable();
@@ -940,6 +1059,77 @@
                     },
                     scales: { y: { beginAtZero: true } }
                 }
+            });
+        }
+
+        // Update 4 Service Charts (Poliklinik, MCU, IGD, RI)
+        function updateServiceCharts() {
+            const showValues = document.getElementById('toggle-values').checked;
+            const services = ['Poliklinik', 'MCU', 'IGD', 'RI'];
+            const chartIds = ['chart-poliklinik', 'chart-mcu', 'chart-igd', 'chart-ri'];
+            const colors = ['#3B82F6', '#8B5CF6', '#EF4444', '#F59E0B'];
+            
+            services.forEach(function(service, index) {
+                const serviceData = filteredData.filter(function(d) {
+                    return d.jenisPelayanan === service;
+                });
+                
+                const periodeData = {};
+                serviceData.forEach(function(d) {
+                    periodeData[d.periode] = (periodeData[d.periode] || 0) + d.jumlah;
+                });
+                
+                const sorted = Object.entries(periodeData).sort(function(a, b) {
+                    const bulanA = a[0].split(' ')[0];
+                    const tahunA = a[0].split(' ')[1];
+                    const bulanB = b[0].split(' ')[0];
+                    const tahunB = b[0].split(' ')[1];
+                    if (tahunA !== tahunB) return parseInt(tahunA) - parseInt(tahunB);
+                    return monthOrder[bulanA] - monthOrder[bulanB];
+                }).slice(-6); // 6 bulan terakhir
+                
+                const chartId = chartIds[index];
+                const ctx = document.getElementById(chartId).getContext('2d');
+                
+                if (charts[chartId]) charts[chartId].destroy();
+                
+                charts[chartId] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sorted.map(function(item) { return item[0]; }),
+                        datasets: [{
+                            label: service,
+                            data: sorted.map(function(item) { return item[1]; }),
+                            borderColor: colors[index],
+                            backgroundColor: colors[index] + '33',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: {
+                                display: showValues,
+                                anchor: 'end',
+                                align: 'top',
+                                font: { weight: 'bold', size: 9 },
+                                formatter: function(v) { return v > 0 ? v.toLocaleString('id-ID') : ''; }
+                            }
+                        },
+                        scales: { 
+                            y: { 
+                                beginAtZero: true,
+                                ticks: { font: { size: 10 } }
+                            },
+                            x: {
+                                ticks: { font: { size: 9 } }
+                            }
+                        }
+                    }
+                });
             });
         }
 
@@ -1516,5 +1706,5 @@
         // Initialize
         fetchData();
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8a895ab55cca4b',t:'MTc2NzUyNzYxOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8bc0e641d1feae',t:'MTc2NzU0MDM3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
