@@ -222,7 +222,7 @@
        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4"><!-- Poliklinik -->
         <div class="border border-gray-200 rounded-lg p-4">
          <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">Poliklinik</h4><button onclick="downloadChart('chart-poliklinik', 'poliklinik')" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"> 📊 </button>
+          <h4 class="text-sm font-semibold text-gray-700">Poliklinik</h4><button onclick="downloadChart('chart-poliklinik', 'poliklinik')" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"> ���� </button>
          </div>
          <canvas id="chart-poliklinik"></canvas>
         </div><!-- MCU -->
@@ -323,7 +323,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Jenis Pelayanan</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-pelayanan-jenis', 'pelayanan_jenis')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-jenis', 'Pelayanan Per Jenis')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-jenis')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-pelayanan-jenis', 'pelayanan_jenis')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-jenis', 'Pelayanan Per Jenis')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-pelayanan-jenis"></canvas>
@@ -331,7 +331,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Klinik (Top 15)</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-pelayanan-klinik', 'pelayanan_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-klinik', 'Pelayanan Per Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-klinik')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-pelayanan-klinik', 'pelayanan_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-klinik', 'Pelayanan Per Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-pelayanan-klinik"></canvas>
@@ -474,7 +474,7 @@
       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h3 class="text-base sm:text-lg font-bold text-gray-800">Perbandingan Multi-Tahun</h3>
-        <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-analisa', 'analisa_multi_tahun')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-analisa', 'Analisa Per Periode')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
+        <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-analisa', 'analisa_multi_tahun')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> ����� PNG </button> <button onclick="exportChartPDF('chart-analisa', 'Analisa Per Periode')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
         </div>
        </div>
        <canvas id="chart-analisa"></canvas>
@@ -972,6 +972,7 @@
         function updateTrendChart() {
             const ctx = document.getElementById('chart-tren').getContext('2d');
             const showValues = document.getElementById('toggle-values').checked;
+            const chartType = chartTypes['chart-tren'] || 'line';
             
             const periodeData = {};
             filteredData.forEach(function(d) {
@@ -990,16 +991,16 @@
             if (charts.tren) charts.tren.destroy();
             
             charts.tren = new Chart(ctx, {
-                type: 'line',
+                type: chartType,
                 data: {
                     labels: sorted.map(function(item) { return item[0]; }),
                     datasets: [{
                         label: 'Kunjungan',
                         data: sorted.map(function(item) { return item[1]; }),
                         borderColor: '#3B82F6',
-                        backgroundColor: '#3B82F633',
+                        backgroundColor: chartType === 'line' ? '#3B82F633' : '#3B82F6',
                         tension: 0.4,
-                        fill: true
+                        fill: chartType === 'line'
                     }]
                 },
                 options: {
@@ -1024,6 +1025,7 @@
         function updateKlinikChart() {
             const ctx = document.getElementById('chart-klinik').getContext('2d');
             const showValues = document.getElementById('toggle-values').checked;
+            const chartType = chartTypes['chart-klinik'] || 'bar';
             
             const klinikData = {};
             filteredData.forEach(function(d) {
@@ -1035,13 +1037,16 @@
             if (charts.klinik) charts.klinik.destroy();
             
             charts.klinik = new Chart(ctx, {
-                type: 'bar',
+                type: chartType,
                 data: {
                     labels: sorted.map(function(item) { return item[0]; }),
                     datasets: [{
                         label: 'Kunjungan',
                         data: sorted.map(function(item) { return item[1]; }),
-                        backgroundColor: '#10B981'
+                        borderColor: '#10B981',
+                        backgroundColor: chartType === 'line' ? '#10B98133' : '#10B981',
+                        tension: 0.4,
+                        fill: chartType === 'line'
                     }]
                 },
                 options: {
@@ -1079,6 +1084,7 @@
                     periodeData[d.periode] = (periodeData[d.periode] || 0) + d.jumlah;
                 });
                 
+                // Tampilkan SEMUA data yang tersedia sesuai filter (tidak hanya 6 bulan)
                 const sorted = Object.entries(periodeData).sort(function(a, b) {
                     const bulanA = a[0].split(' ')[0];
                     const tahunA = a[0].split(' ')[1];
@@ -1086,24 +1092,25 @@
                     const tahunB = b[0].split(' ')[1];
                     if (tahunA !== tahunB) return parseInt(tahunA) - parseInt(tahunB);
                     return monthOrder[bulanA] - monthOrder[bulanB];
-                }).slice(-6); // 6 bulan terakhir
+                });
                 
                 const chartId = chartIds[index];
                 const ctx = document.getElementById(chartId).getContext('2d');
+                const chartType = chartTypes[chartId] || 'line';
                 
                 if (charts[chartId]) charts[chartId].destroy();
                 
                 charts[chartId] = new Chart(ctx, {
-                    type: 'line',
+                    type: chartType,
                     data: {
                         labels: sorted.map(function(item) { return item[0]; }),
                         datasets: [{
                             label: service,
                             data: sorted.map(function(item) { return item[1]; }),
                             borderColor: colors[index],
-                            backgroundColor: colors[index] + '33',
+                            backgroundColor: chartType === 'line' ? colors[index] + '33' : colors[index],
                             tension: 0.4,
-                            fill: true
+                            fill: chartType === 'line'
                         }]
                     },
                     options: {
@@ -1276,6 +1283,8 @@
         // Update Pelayanan Tab
         function updatePelayananTab() {
             const showValues = document.getElementById('toggle-values').checked;
+            const chartTypeJenis = chartTypes['chart-pelayanan-jenis'] || 'bar';
+            const chartTypeKlinik = chartTypes['chart-pelayanan-klinik'] || 'bar';
             
             const jenisData = {};
             filteredData.forEach(function(d) {
@@ -1289,13 +1298,16 @@
             if (charts.pelayananJenis) charts.pelayananJenis.destroy();
             
             charts.pelayananJenis = new Chart(ctxJenis, {
-                type: 'bar',
+                type: chartTypeJenis,
                 data: {
                     labels: sortedJenis.map(function(item) { return item[0]; }),
                     datasets: [{
                         label: 'Kunjungan',
                         data: sortedJenis.map(function(item) { return item[1]; }),
-                        backgroundColor: '#10B981'
+                        borderColor: '#10B981',
+                        backgroundColor: chartTypeJenis === 'line' ? '#10B98133' : '#10B981',
+                        tension: 0.4,
+                        fill: chartTypeJenis === 'line'
                     }]
                 },
                 options: {
@@ -1327,30 +1339,36 @@
             if (charts.pelayananKlinik) charts.pelayananKlinik.destroy();
             
             charts.pelayananKlinik = new Chart(ctxKlinik, {
-                type: 'bar',
+                type: chartTypeKlinik,
                 data: {
                     labels: sortedKlinik.map(function(item) { return item[0]; }),
                     datasets: [{
                         label: 'Kunjungan',
                         data: sortedKlinik.map(function(item) { return item[1]; }),
-                        backgroundColor: '#3B82F6'
+                        borderColor: '#3B82F6',
+                        backgroundColor: chartTypeKlinik === 'line' ? '#3B82F633' : '#3B82F6',
+                        tension: 0.4,
+                        fill: chartTypeKlinik === 'line'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    indexAxis: 'y',
+                    indexAxis: chartTypeKlinik === 'bar' ? 'y' : 'x',
                     plugins: {
                         legend: { display: false },
                         datalabels: {
                             display: showValues,
                             anchor: 'end',
-                            align: 'right',
+                            align: chartTypeKlinik === 'bar' ? 'right' : 'top',
                             font: { weight: 'bold', size: 11 },
                             formatter: function(v) { return v.toLocaleString('id-ID'); }
                         }
                     },
-                    scales: { x: { beginAtZero: true } }
+                    scales: { 
+                        x: { beginAtZero: true },
+                        y: { beginAtZero: true }
+                    }
                 }
             });
             
@@ -1473,6 +1491,7 @@
         // Update Analisa Tab
         function updateAnalisaTab() {
             const showValues = document.getElementById('toggle-values').checked;
+            const chartType = chartTypes['chart-analisa'] || 'line';
             const selectedYears = [...selectedTahun].sort(function(a, b) { return a - b; });
             
             if (selectedYears.length === 0) {
@@ -1499,8 +1518,9 @@
                     label: year.toString(),
                     data: monthNames.map(function(m) { return yearData[year][m] || 0; }),
                     borderColor: colors[idx % colors.length],
-                    backgroundColor: colors[idx % colors.length] + '33',
-                    tension: 0.4
+                    backgroundColor: chartType === 'line' ? colors[idx % colors.length] + '33' : colors[idx % colors.length],
+                    tension: 0.4,
+                    fill: chartType === 'line'
                 };
             });
             
@@ -1508,7 +1528,7 @@
             if (charts.analisa) charts.analisa.destroy();
             
             charts.analisa = new Chart(ctxAnalisa, {
-                type: 'line',
+                type: chartType,
                 data: {
                     labels: monthNames,
                     datasets: datasets
@@ -1706,5 +1726,5 @@
         // Initialize
         fetchData();
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8bc0e641d1feae',t:'MTc2NzU0MDM3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8bdd9b234a3d7d',t:'MTc2NzU0MTU1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
