@@ -203,7 +203,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Tren Kunjungan</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-tren', 'tren_kunjungan')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-tren', 'Tren Kunjungan')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-tren')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-tren', 'tren_kunjungan')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-tren', 'Tren Kunjungan')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-tren"></canvas>
@@ -211,7 +211,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Top 10 Klinik</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-klinik', 'top_10_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-klinik', 'Top 10 Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-klinik')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-klinik', 'top_10_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-klinik', 'Top 10 Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-klinik"></canvas>
@@ -222,25 +222,33 @@
        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4"><!-- Poliklinik -->
         <div class="border border-gray-200 rounded-lg p-4">
          <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">Poliklinik</h4><button onclick="downloadChart('chart-poliklinik', 'poliklinik')" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"> ���� </button>
+          <h4 class="text-sm font-semibold text-gray-700">Poliklinik</h4>
+          <div class="flex gap-1"><button onclick="toggleChartType('chart-poliklinik')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-poliklinik', 'poliklinik')" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"> 📊 </button>
+          </div>
          </div>
          <canvas id="chart-poliklinik"></canvas>
         </div><!-- MCU -->
         <div class="border border-gray-200 rounded-lg p-4">
          <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">MCU</h4><button onclick="downloadChart('chart-mcu', 'mcu')" class="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"> 📊 </button>
+          <h4 class="text-sm font-semibold text-gray-700">MCU</h4>
+          <div class="flex gap-1"><button onclick="toggleChartType('chart-mcu')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-mcu', 'mcu')" class="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"> 📊 </button>
+          </div>
          </div>
          <canvas id="chart-mcu"></canvas>
         </div><!-- IGD -->
         <div class="border border-gray-200 rounded-lg p-4">
          <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">IGD</h4><button onclick="downloadChart('chart-igd', 'igd')" class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"> 📊 </button>
+          <h4 class="text-sm font-semibold text-gray-700">IGD</h4>
+          <div class="flex gap-1"><button onclick="toggleChartType('chart-igd')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-igd', 'igd')" class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"> 📊 </button>
+          </div>
          </div>
          <canvas id="chart-igd"></canvas>
         </div><!-- Rawat Inap -->
         <div class="border border-gray-200 rounded-lg p-4">
          <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">Rawat Inap</h4><button onclick="downloadChart('chart-ri', 'rawat_inap')" class="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"> 📊 </button>
+          <h4 class="text-sm font-semibold text-gray-700">Rawat Inap</h4>
+          <div class="flex gap-1"><button onclick="toggleChartType('chart-ri')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-ri', 'rawat_inap')" class="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"> 📊 </button>
+          </div>
          </div>
          <canvas id="chart-ri"></canvas>
         </div>
@@ -474,7 +482,7 @@
       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h3 class="text-base sm:text-lg font-bold text-gray-800">Perbandingan Multi-Tahun</h3>
-        <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-analisa', 'analisa_multi_tahun')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> ����� PNG </button> <button onclick="exportChartPDF('chart-analisa', 'Analisa Per Periode')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
+        <div class="flex gap-2 flex-wrap"><button onclick="downloadChart('chart-analisa', 'analisa_multi_tahun')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-analisa', 'Analisa Per Periode')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
         </div>
        </div>
        <canvas id="chart-analisa"></canvas>
@@ -510,6 +518,7 @@
         let rawData = [];
         let filteredData = [];
         let charts = {};
+        let chartTypes = {}; // Menyimpan tipe chart untuk setiap grafik
         const ITEMS_PER_PAGE = 10;
         let currentPage = 1;
         let searchQuery = '';
@@ -529,6 +538,13 @@
 
         const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
                             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        // Toggle Chart Type
+        function toggleChartType(chartId) {
+            const currentType = chartTypes[chartId] || 'line';
+            chartTypes[chartId] = currentType === 'line' ? 'bar' : 'line';
+            updateCurrentTab();
+        }
 
         // Dropdown toggle
         function toggleDropdown(type) {
@@ -1726,5 +1742,5 @@
         // Initialize
         fetchData();
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8bdd9b234a3d7d',t:'MTc2NzU0MTU1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8bef01e7c03d7d',t:'MTc2NzU0MjI2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
