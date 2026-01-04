@@ -316,7 +316,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Tren Kunjungan</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-tren')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-tren', 'tren_kunjungan')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-tren', 'Tren Kunjungan')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-tren')" id="btn-toggle-chart-tren" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-tren', 'tren_kunjungan')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-tren', 'Tren Kunjungan')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-tren"></canvas>
@@ -324,7 +324,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Top 10 Klinik</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-klinik')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-klinik', 'top_10_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-klinik', 'Top 10 Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-klinik')" id="btn-toggle-chart-klinik" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-klinik', 'top_10_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"> 📊 PNG </button> <button onclick="exportChartPDF('chart-klinik', 'Top 10 Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-klinik"></canvas>
@@ -332,35 +332,59 @@
       </div><!-- Distribusi Kunjungan Per Jenis Pelayanan -->
       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
        <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-4">Distribusi Kunjungan Pasien Berdasarkan Jenis Pelayanan</h3>
-       <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4"><!-- Poliklinik -->
-        <div class="border border-gray-200 rounded-lg p-4">
-         <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">Poliklinik</h4>
-          <div class="flex gap-1"><button onclick="toggleChartType('chart-poliklinik')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-poliklinik', 'poliklinik')" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"> 📊 </button>
+       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4"><!-- Poliklinik -->
+        <div class="border-2 border-blue-200 rounded-xl p-4 bg-gradient-to-br from-blue-50 to-white">
+         <div class="flex justify-between items-start mb-3">
+          <div>
+           <h4 class="text-base font-bold text-blue-700 mb-2">Kunjungan Pasien – Poliklinik</h4>
+           <div class="flex flex-wrap gap-2 mb-2"><span id="badge-poliklinik-total" class="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">Total: 0</span>
+           </div>
+           <div class="flex flex-wrap gap-2"><span id="badge-poliklinik-l" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">L: 0 (0%)</span> <span id="badge-poliklinik-p" class="px-3 py-1 bg-pink-500 text-white text-xs font-semibold rounded-full">P: 0 (0%)</span>
+           </div>
+          </div>
+          <div class="flex flex-col gap-2"><button onclick="toggleChartType('chart-poliklinik')" id="btn-toggle-chart-poliklinik" class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 font-medium"> 📊 Bar </button> <button onclick="downloadChart('chart-poliklinik', 'poliklinik_gender')" class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"> 📊 PNG </button>
           </div>
          </div>
          <canvas id="chart-poliklinik"></canvas>
         </div><!-- MCU -->
-        <div class="border border-gray-200 rounded-lg p-4">
-         <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">MCU</h4>
-          <div class="flex gap-1"><button onclick="toggleChartType('chart-mcu')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-mcu', 'mcu')" class="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"> 📊 </button>
+        <div class="border-2 border-purple-200 rounded-xl p-4 bg-gradient-to-br from-purple-50 to-white">
+         <div class="flex justify-between items-start mb-3">
+          <div>
+           <h4 class="text-base font-bold text-purple-700 mb-2">Kunjungan Pasien – MCU</h4>
+           <div class="flex flex-wrap gap-2 mb-2"><span id="badge-mcu-total" class="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full">Total: 0</span>
+           </div>
+           <div class="flex flex-wrap gap-2"><span id="badge-mcu-l" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">L: 0 (0%)</span> <span id="badge-mcu-p" class="px-3 py-1 bg-pink-500 text-white text-xs font-semibold rounded-full">P: 0 (0%)</span>
+           </div>
+          </div>
+          <div class="flex flex-col gap-2"><button onclick="toggleChartType('chart-mcu')" id="btn-toggle-chart-mcu" class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 font-medium"> 📊 Bar </button> <button onclick="downloadChart('chart-mcu', 'mcu_gender')" class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700"> 📊 PNG </button>
           </div>
          </div>
          <canvas id="chart-mcu"></canvas>
         </div><!-- IGD -->
-        <div class="border border-gray-200 rounded-lg p-4">
-         <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">IGD</h4>
-          <div class="flex gap-1"><button onclick="toggleChartType('chart-igd')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-igd', 'igd')" class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"> 📊 </button>
+        <div class="border-2 border-red-200 rounded-xl p-4 bg-gradient-to-br from-red-50 to-white">
+         <div class="flex justify-between items-start mb-3">
+          <div>
+           <h4 class="text-base font-bold text-red-700 mb-2">Kunjungan Pasien – IGD</h4>
+           <div class="flex flex-wrap gap-2 mb-2"><span id="badge-igd-total" class="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full">Total: 0</span>
+           </div>
+           <div class="flex flex-wrap gap-2"><span id="badge-igd-l" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">L: 0 (0%)</span> <span id="badge-igd-p" class="px-3 py-1 bg-pink-500 text-white text-xs font-semibold rounded-full">P: 0 (0%)</span>
+           </div>
+          </div>
+          <div class="flex flex-col gap-2"><button onclick="toggleChartType('chart-igd')" id="btn-toggle-chart-igd" class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 font-medium"> 📊 Bar </button> <button onclick="downloadChart('chart-igd', 'igd_gender')" class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"> 📊 PNG </button>
           </div>
          </div>
          <canvas id="chart-igd"></canvas>
         </div><!-- Rawat Inap -->
-        <div class="border border-gray-200 rounded-lg p-4">
-         <div class="flex justify-between items-center mb-3">
-          <h4 class="text-sm font-semibold text-gray-700">Rawat Inap</h4>
-          <div class="flex gap-1"><button onclick="toggleChartType('chart-ri')" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700" title="Toggle"> 📈 </button> <button onclick="downloadChart('chart-ri', 'rawat_inap')" class="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"> 📊 </button>
+        <div class="border-2 border-orange-200 rounded-xl p-4 bg-gradient-to-br from-orange-50 to-white">
+         <div class="flex justify-between items-start mb-3">
+          <div>
+           <h4 class="text-base font-bold text-orange-700 mb-2">Kunjungan Pasien – Rawat Inap</h4>
+           <div class="flex flex-wrap gap-2 mb-2"><span id="badge-ri-total" class="px-3 py-1 bg-orange-600 text-white text-xs font-bold rounded-full">Total: 0</span>
+           </div>
+           <div class="flex flex-wrap gap-2"><span id="badge-ri-l" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">L: 0 (0%)</span> <span id="badge-ri-p" class="px-3 py-1 bg-pink-500 text-white text-xs font-semibold rounded-full">P: 0 (0%)</span>
+           </div>
+          </div>
+          <div class="flex flex-col gap-2"><button onclick="toggleChartType('chart-ri')" id="btn-toggle-chart-ri" class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 font-medium"> 📊 Bar </button> <button onclick="downloadChart('chart-ri', 'rawat_inap_gender')" class="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700"> 📊 PNG </button>
           </div>
          </div>
          <canvas id="chart-ri"></canvas>
@@ -444,7 +468,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Jenis Pelayanan</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-jenis')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-pelayanan-jenis', 'pelayanan_jenis')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-jenis', 'Pelayanan Per Jenis')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-jenis')" id="btn-toggle-chart-pelayanan-jenis" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-pelayanan-jenis', 'pelayanan_jenis')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-jenis', 'Pelayanan Per Jenis')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-pelayanan-jenis"></canvas>
@@ -452,7 +476,7 @@
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
          <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Klinik (Top 15)</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-klinik')" class="px-3 py-1 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700" title="Toggle Chart Type"> 📈 Toggle </button> <button onclick="downloadChart('chart-pelayanan-klinik', 'pelayanan_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-klinik', 'Pelayanan Per Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
+         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-klinik')" id="btn-toggle-chart-pelayanan-klinik" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-pelayanan-klinik', 'pelayanan_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-klinik', 'Pelayanan Per Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
          </div>
         </div>
         <canvas id="chart-pelayanan-klinik"></canvas>
@@ -870,7 +894,19 @@
         // Toggle Chart Type
         function toggleChartType(chartId) {
             const currentType = chartTypes[chartId] || 'line';
-            chartTypes[chartId] = currentType === 'line' ? 'bar' : 'line';
+            const newType = currentType === 'line' ? 'bar' : 'line';
+            chartTypes[chartId] = newType;
+            
+            // Update button text
+            const button = document.getElementById('btn-toggle-' + chartId);
+            if (button) {
+                if (newType === 'bar') {
+                    button.innerHTML = '📈 Line Chart';
+                } else {
+                    button.innerHTML = '📊 Bar Chart';
+                }
+            }
+            
             updateCurrentTab();
         }
 
@@ -1330,7 +1366,7 @@
         function updateKlinikChart() {
             const ctx = document.getElementById('chart-klinik').getContext('2d');
             const showValues = document.getElementById('toggle-values').checked;
-            const chartType = chartTypes['chart-klinik'] || 'bar';
+            const chartType = chartTypes['chart-klinik'] || 'line';
             
             const klinikData = {};
             filteredData.forEach(function(d) {
@@ -1360,67 +1396,129 @@
 
         function updateServiceCharts() {
             const showValues = document.getElementById('toggle-values').checked;
-            const services = ['Poliklinik', 'MCU', 'IGD', 'RI'];
-            const chartIds = ['chart-poliklinik', 'chart-mcu', 'chart-igd', 'chart-ri'];
-            const colors = ['#3B82F6', '#8B5CF6', '#EF4444', '#F59E0B'];
+            const services = [
+                { name: 'Poliklinik', chartId: 'chart-poliklinik', color: '#3B82F6', badgePrefix: 'poliklinik' },
+                { name: 'MCU', chartId: 'chart-mcu', color: '#8B5CF6', badgePrefix: 'mcu' },
+                { name: 'IGD', chartId: 'chart-igd', color: '#EF4444', badgePrefix: 'igd' },
+                { name: 'RI', chartId: 'chart-ri', color: '#F59E0B', badgePrefix: 'ri' }
+            ];
             
-            services.forEach(function(service, index) {
+            services.forEach(function(service) {
+                const chartType = chartTypes[service.chartId] || 'line';
+                
                 const serviceData = filteredData.filter(function(d) {
-                    return d.jenisPelayanan === service;
+                    return d.jenisPelayanan === service.name;
                 });
                 
-                const periodeData = {};
+                // Group by periode and gender
+                const periodeGenderData = {};
+                
                 serviceData.forEach(function(d) {
-                    periodeData[d.periode] = (periodeData[d.periode] || 0) + d.jumlah;
+                    if (!periodeGenderData[d.periode]) {
+                        periodeGenderData[d.periode] = { L: 0, P: 0, total: 0 };
+                    }
+                    if (d.kelamin === 'L' || d.kelamin === 'Laki-laki') {
+                        periodeGenderData[d.periode].L += d.jumlah;
+                    } else if (d.kelamin === 'P' || d.kelamin === 'Perempuan') {
+                        periodeGenderData[d.periode].P += d.jumlah;
+                    }
+                    periodeGenderData[d.periode].total += d.jumlah;
                 });
                 
-                const sorted = Object.entries(periodeData).sort(function(a, b) {
-                    const bulanA = a[0].split(' ')[0];
-                    const tahunA = a[0].split(' ')[1];
-                    const bulanB = b[0].split(' ')[0];
-                    const tahunB = b[0].split(' ')[1];
+                // Sort periods
+                const sortedPeriodes = Object.keys(periodeGenderData).sort(function(a, b) {
+                    const bulanA = a.split(' ')[0];
+                    const tahunA = a.split(' ')[1];
+                    const bulanB = b.split(' ')[0];
+                    const tahunB = b.split(' ')[1];
                     if (tahunA !== tahunB) return parseInt(tahunA) - parseInt(tahunB);
                     return monthOrder[bulanA] - monthOrder[bulanB];
                 });
                 
-                const chartId = chartIds[index];
-                const ctx = document.getElementById(chartId).getContext('2d');
-                const chartType = chartTypes[chartId] || 'line';
+                // Prepare chart data - total only
+                const totalData = sortedPeriodes.map(function(p) { return periodeGenderData[p].total; });
                 
-                if (charts[chartId]) charts[chartId].destroy();
+                // Calculate totals for badges
+                const totalLakiLaki = sortedPeriodes.reduce(function(sum, p) { return sum + periodeGenderData[p].L; }, 0);
+                const totalPerempuan = sortedPeriodes.reduce(function(sum, p) { return sum + periodeGenderData[p].P; }, 0);
+                const grandTotal = totalLakiLaki + totalPerempuan;
+                const percentL = grandTotal > 0 ? ((totalLakiLaki / grandTotal) * 100).toFixed(1) : 0;
+                const percentP = grandTotal > 0 ? ((totalPerempuan / grandTotal) * 100).toFixed(1) : 0;
                 
-                charts[chartId] = new Chart(ctx, {
+                // Update badges with icons
+                document.getElementById('badge-' + service.badgePrefix + '-total').textContent = 'Total: ' + grandTotal.toLocaleString('id-ID');
+                document.getElementById('badge-' + service.badgePrefix + '-l').innerHTML = '👨 L: ' + totalLakiLaki.toLocaleString('id-ID') + ' (' + percentL + '%)';
+                document.getElementById('badge-' + service.badgePrefix + '-p').innerHTML = '👩 P: ' + totalPerempuan.toLocaleString('id-ID') + ' (' + percentP + '%)';
+                
+                // Update toggle button text
+                const button = document.getElementById('btn-toggle-' + service.chartId);
+                if (button) {
+                    if (chartType === 'bar') {
+                        button.innerHTML = '📈 Line';
+                    } else {
+                        button.innerHTML = '📊 Bar';
+                    }
+                }
+                
+                const ctx = document.getElementById(service.chartId).getContext('2d');
+                
+                if (charts[service.chartId]) charts[service.chartId].destroy();
+                
+                charts[service.chartId] = new Chart(ctx, {
                     type: chartType,
                     data: {
-                        labels: sorted.map(function(item) { return item[0]; }),
-                        datasets: [{
-                            label: service,
-                            data: sorted.map(function(item) { return item[1]; }),
-                            borderColor: colors[index],
-                            backgroundColor: chartType === 'line' ? colors[index] + '33' : colors[index],
-                            tension: 0.4,
-                            fill: chartType === 'line'
-                        }]
+                        labels: sortedPeriodes,
+                        datasets: [
+                            {
+                                label: 'Total Kunjungan',
+                                data: totalData,
+                                backgroundColor: chartType === 'line' ? service.color + '33' : service.color,
+                                borderColor: service.color,
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: chartType === 'line'
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: true,
                         plugins: {
-                            legend: { display: false },
+                            legend: { 
+                                display: false
+                            },
                             datalabels: {
                                 display: showValues,
                                 anchor: 'end',
                                 align: 'top',
-                                font: { weight: 'bold', size: 9 },
+                                color: '#000',
+                                font: { weight: 'bold', size: 10 },
                                 formatter: function(v) { return v > 0 ? v.toLocaleString('id-ID') : ''; }
                             },
                             tooltip: {
                                 enabled: true,
                                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 10,
+                                padding: 12,
                                 callbacks: {
+                                    title: function(context) {
+                                        return 'Periode: ' + context[0].label;
+                                    },
                                     label: function(context) {
-                                        return service + ': ' + context.parsed.y.toLocaleString('id-ID');
+                                        const idx = context.dataIndex;
+                                        const periode = sortedPeriodes[idx];
+                                        const data = periodeGenderData[periode];
+                                        return 'Total: ' + data.total.toLocaleString('id-ID');
+                                    },
+                                    afterLabel: function(context) {
+                                        const idx = context.dataIndex;
+                                        const periode = sortedPeriodes[idx];
+                                        const data = periodeGenderData[periode];
+                                        const percentL = data.total > 0 ? ((data.L / data.total) * 100).toFixed(1) : 0;
+                                        const percentP = data.total > 0 ? ((data.P / data.total) * 100).toFixed(1) : 0;
+                                        return [
+                                            '👨 Laki-laki: ' + data.L.toLocaleString('id-ID') + ' (' + percentL + '%)',
+                                            '👩 Perempuan: ' + data.P.toLocaleString('id-ID') + ' (' + percentP + '%)'
+                                        ];
                                     }
                                 }
                             }
@@ -1431,7 +1529,11 @@
                                 ticks: { font: { size: 10 } }
                             },
                             x: {
-                                ticks: { font: { size: 9 } }
+                                ticks: { 
+                                    font: { size: 9 },
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
                             }
                         }
                     }
@@ -1597,8 +1699,8 @@
 
         function updatePelayananTab() {
             const showValues = document.getElementById('toggle-values').checked;
-            const chartTypeJenis = chartTypes['chart-pelayanan-jenis'] || 'bar';
-            const chartTypeKlinik = chartTypes['chart-pelayanan-klinik'] || 'bar';
+            const chartTypeJenis = chartTypes['chart-pelayanan-jenis'] || 'line';
+            const chartTypeKlinik = chartTypes['chart-pelayanan-klinik'] || 'line';
             
             const jenisData = {};
             filteredData.forEach(function(d) {
@@ -2058,5 +2160,5 @@
 
         fetchData();
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8c070fa2dfdfc6',t:'MTc2NzU0MzI1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8c2a57f60ace21',t:'MTc2NzU0NDY5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
