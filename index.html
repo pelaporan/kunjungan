@@ -511,24 +511,24 @@
        </div>
       </div>
      </div><!-- Tab Pelayanan -->
-     <div id="content-pelayanan" class="tab-content">
-      <div class="grid grid-cols-1 gap-4 sm:gap-6 mb-4 sm:mb-6">
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-         <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Jenis Pelayanan</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-jenis')" id="btn-toggle-chart-pelayanan-jenis" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-pelayanan-jenis', 'pelayanan_jenis')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-jenis', 'Pelayanan Per Jenis')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
-         </div>
+    <div id="content-pelayanan" class="tab-content">
+     <div class="grid grid-cols-1 gap-4 sm:gap-6 mb-4 sm:mb-6">
+      <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
+       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Jenis Pelayanan</h3>
+        <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-jenis')" id="btn-toggle-chart-pelayanan-jenis" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-pelayanan-jenis', 'pelayanan_jenis')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-jenis', 'Pelayanan Per Jenis')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
         </div>
-        <canvas id="chart-pelayanan-jenis"></canvas>
        </div>
-       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-         <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Klinik (Top 15)</h3>
-         <div class="flex gap-2 flex-wrap"><button onclick="toggleChartType('chart-pelayanan-klinik')" id="btn-toggle-chart-pelayanan-klinik" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-pelayanan-klinik', 'pelayanan_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-klinik', 'Pelayanan Per Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
-         </div>
+       <canvas id="chart-pelayanan-jenis"></canvas>
+      </div>
+      <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 chart-container">
+       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <h3 class="text-base sm:text-lg font-bold text-gray-800">Per Klinik <span id="klinik-top-label">(Top 15)</span></h3>
+        <div class="flex gap-2 flex-wrap"><select id="select-top-klinik" onchange="changeTopKlinik()" class="px-3 py-1 border border-gray-300 rounded-lg text-xs sm:text-sm bg-white"> <option value="10">Top 10</option> <option value="15" selected>Top 15</option> <option value="20">Top 20</option> <option value="all">Semua Data</option> </select> <button onclick="toggleChartType('chart-pelayanan-klinik')" id="btn-toggle-chart-pelayanan-klinik" class="px-3 py-1 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 font-medium transition-colors"> 📊 Bar Chart </button> <button onclick="downloadChart('chart-pelayanan-klinik', 'pelayanan_klinik')" class="px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700"> 📊 PNG </button> <button onclick="exportChartPDF('chart-pelayanan-klinik', 'Pelayanan Per Klinik')" class="px-3 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700"> 📄 PDF </button>
         </div>
-        <canvas id="chart-pelayanan-klinik"></canvas>
        </div>
+       <canvas id="chart-pelayanan-klinik"></canvas>
+      </div>
       </div><!-- Tables -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
@@ -2584,3 +2584,4 @@
     </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b93c00cc5db5724',t:'MTc2NzYyNDIzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
