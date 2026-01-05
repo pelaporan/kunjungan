@@ -2141,6 +2141,10 @@
             const showValues = document.getElementById('toggle-values').checked;
             const chartTypeJenis = chartTypes['chart-pelayanan-jenis'] || 'line';
             const chartTypeKlinik = chartTypes['chart-pelayanan-klinik'] || 'line';
+            const isHorizontalJenis = chartTypeJenis === 'horizontalBar';
+            const isHorizontalKlinik = chartTypeKlinik === 'horizontalBar';
+            const actualChartTypeJenis = isHorizontalJenis ? 'bar' : chartTypeJenis;
+            const actualChartTypeKlinik = isHorizontalKlinik ? 'bar' : chartTypeKlinik;
             
             const jenisData = {};
             filteredData.forEach(function(d) {
@@ -2154,7 +2158,7 @@
             if (charts.pelayananJenis) charts.pelayananJenis.destroy();
             
             charts.pelayananJenis = new Chart(ctxJenis, {
-                type: chartTypeJenis,
+                type: actualChartTypeJenis,
                 data: {
                     labels: sortedJenis.map(function(item) { return item[0]; }),
                     datasets: [{
@@ -2166,7 +2170,7 @@
                         fill: chartTypeJenis === 'line'
                     }]
                 },
-                options: getEnhancedChartOptions(showValues, chartTypeJenis)
+                options: getEnhancedChartOptions(showValues, actualChartTypeJenis, isHorizontalJenis)
             });
             
             const klinikData = {};
@@ -2174,14 +2178,15 @@
                 klinikData[d.pelayanan] = (klinikData[d.pelayanan] || 0) + d.jumlah;
             });
             
-            const sortedKlinik = Object.entries(klinikData).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 15);
+            const sortedKlinikAll = Object.entries(klinikData).sort(function(a, b) { return b[1] - a[1]; });
+            const sortedKlinik = topKlinikLimit === 'all' ? sortedKlinikAll : sortedKlinikAll.slice(0, topKlinikLimit);
             const totalKlinik = Object.values(klinikData).reduce(function(sum, v) { return sum + v; }, 0);
             
             const ctxKlinik = document.getElementById('chart-pelayanan-klinik').getContext('2d');
             if (charts.pelayananKlinik) charts.pelayananKlinik.destroy();
             
             charts.pelayananKlinik = new Chart(ctxKlinik, {
-                type: chartTypeKlinik,
+                type: actualChartTypeKlinik,
                 data: {
                     labels: sortedKlinik.map(function(item) { return item[0]; }),
                     datasets: [{
@@ -2193,34 +2198,7 @@
                         fill: chartTypeKlinik === 'line'
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    indexAxis: chartTypeKlinik === 'bar' ? 'y' : 'x',
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            display: showValues,
-                            anchor: 'end',
-                            align: chartTypeKlinik === 'bar' ? 'right' : 'top',
-                            font: { weight: 'bold', size: 11 },
-                            formatter: function(v) { return v.toLocaleString('id-ID'); }
-                        },
-                        tooltip: {
-                            enabled: true,
-                            callbacks: {
-                                label: function(context) {
-                                    const percentage = ((context.parsed.x / totalKlinik) * 100).toFixed(1);
-                                    return context.label + ': ' + context.parsed.x.toLocaleString('id-ID') + ' (' + percentage + '%)';
-                                }
-                            }
-                        }
-                    },
-                    scales: { 
-                        x: { beginAtZero: true },
-                        y: { beginAtZero: true }
-                    }
-                }
+                options: getEnhancedChartOptions(showValues, actualChartTypeKlinik, isHorizontalKlinik)
             });
             
             const tbodyJenis = document.getElementById('table-pelayanan-jenis-body');
@@ -2602,5 +2580,6 @@
     </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b93c00cc5db5724',t:'MTc2NzYyNDIzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
