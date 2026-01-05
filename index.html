@@ -194,7 +194,7 @@
       <div class="flex gap-2"><!-- Dark Mode Toggle --> <button onclick="toggleDarkMode()" class="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all" title="Toggle Dark Mode"> <span id="dark-mode-icon">🌙</span> </button> <!-- Export Full PDF --> <button onclick="exportFullDashboard()" class="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all text-sm font-medium hidden sm:block" title="Export Full Dashboard"> 📄 Export All </button> <!-- Comparison Mode --> <button onclick="openComparisonMode()" class="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all text-sm font-medium hidden sm:block" title="Compare Charts"> 📊 Compare </button>
       </div>
      </div><!-- Tab Navigation -->
-     <div class="flex gap-2 mt-4 flex-wrap"><button onclick="switchTab('overview')" id="tab-overview" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📊 Overview </button> <button onclick="switchTab('pelayanan')" id="tab-pelayanan" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 🏥 Pelayanan </button> <button onclick="switchTab('status')" id="tab-status" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📋 Status </button> <button onclick="switchTab('analisa')" id="tab-analisa" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📈 Analisa </button>
+     <div class="flex gap-2 mt-4 flex-wrap"><button onclick="switchTab('overview')" id="tab-overview" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📊 Overview </button> <button onclick="switchTab('pelayanan')" id="tab-pelayanan" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 🏥 Pelayanan </button> <button onclick="switchTab('status')" id="tab-status" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> 📋 Status </button> <button onclick="switchTab('analisa')" id="tab-analisa" class="tab-button px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base"> �� Analisa </button>
      </div>
     </div><!-- Loading State -->
     <div id="loading-state" class="bg-white rounded-xl shadow-lg p-12 text-center">
@@ -370,7 +370,7 @@
            <div class="flex flex-wrap gap-2"><span id="badge-igd-l" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">L: 0 (0%)</span> <span id="badge-igd-p" class="px-3 py-1 bg-pink-500 text-white text-xs font-semibold rounded-full">P: 0 (0%)</span>
            </div>
           </div>
-          <div class="flex flex-col gap-2"><button onclick="toggleChartType('chart-igd')" id="btn-toggle-chart-igd" class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 font-medium"> 📊 Bar </button> <button onclick="downloadChart('chart-igd', 'igd_gender')" class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"> 📊 PNG </button>
+          <div class="flex flex-col gap-2"><button onclick="toggleChartType('chart-igd')" id="btn-toggle-chart-igd" class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 font-medium"> �� Bar </button> <button onclick="downloadChart('chart-igd', 'igd_gender')" class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"> 📊 PNG </button>
           </div>
          </div>
          <canvas id="chart-igd"></canvas>
@@ -437,23 +437,71 @@
        </div>
       </div><!-- Detail Table -->
       <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-        <h3 class="text-base sm:text-lg font-bold text-gray-800">Data Detail</h3><input type="text" id="search-table" placeholder="Cari..." class="px-4 py-2 border border-gray-300 rounded-lg w-full sm:w-64 text-sm">
+       <div class="flex flex-col gap-4 mb-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+         <h3 class="text-base sm:text-lg font-bold text-gray-800">Data Detail</h3>
+         <div class="flex gap-2 flex-wrap"><button onclick="exportDetailToCSV()" class="px-3 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 transition-colors"> 📥 CSV </button> <button onclick="exportDetailToPDF()" class="px-3 py-2 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-colors"> 📄 PDF </button>
+         </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center"><input type="text" id="search-table" placeholder="Cari..." class="px-4 py-2 border border-gray-300 rounded-lg w-full sm:w-64 text-sm">
+         <div class="flex items-center gap-2"><label class="text-sm text-gray-700 font-medium">Per halaman:</label> <select id="items-per-page" onchange="changeItemsPerPage()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm"> <option value="10">10</option> <option value="15" selected>15</option> <option value="50">50</option> <option value="100">100</option> <option value="200">200</option> <option value="500">500</option> </select>
+         </div>
+        </div>
+        <div class="border-t pt-3">
+         <p class="text-sm font-medium text-gray-700 mb-2">Tampilkan Kolom:</p>
+         <div class="flex flex-wrap gap-3"><label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-periode" checked onchange="toggleColumn('periode')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Periode</span> </label> <label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-jenis" checked onchange="toggleColumn('jenis')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Jenis Pelayanan</span> </label> <label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-klinik" checked onchange="toggleColumn('klinik')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Klinik</span> </label> <label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-status" checked onchange="toggleColumn('status')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Status</span> </label> <label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-bayar" checked onchange="toggleColumn('bayar')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Cara Bayar</span> </label> <label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-laki" checked onchange="toggleColumn('laki')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Laki-laki</span> </label> <label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-perempuan" checked onchange="toggleColumn('perempuan')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Perempuan</span> </label> <label class="flex items-center space-x-2 cursor-pointer"> <input type="checkbox" id="col-total" checked onchange="toggleColumn('total')" class="w-4 h-4 text-blue-600 rounded"> <span class="text-sm text-gray-700">Total</span> </label>
+         </div>
+        </div>
        </div>
-       <div class="overflow-x-auto">
+       <div class="overflow-x-auto" style="max-height: 600px; overflow-y: auto;">
         <table class="w-full text-sm">
-         <thead class="bg-gray-50">
-          <tr>
-           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Periode</th>
-           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Klinik</th>
-           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jenis</th>
-           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gender</th>
-           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bayar</th>
-           <th class="px-3 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Jumlah</th>
+         <thead class="bg-gray-50 sticky top-0 z-10">
+          <tr id="detail-table-header">
+           <th class="px-3 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">No</th>
+           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase col-periode cursor-pointer hover:bg-gray-100" onclick="toggleSort('periode')">
+            <div class="flex items-center gap-1">
+             Periode <span id="sort-icon-periode">⇅</span>
+            </div></th>
+           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase col-jenis cursor-pointer hover:bg-gray-100" onclick="toggleSort('jenis')">
+            <div class="flex items-center gap-1">
+             Jenis Pelayanan <span id="sort-icon-jenis">⇅</span>
+            </div></th>
+           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase col-klinik cursor-pointer hover:bg-gray-100" onclick="toggleSort('klinik')">
+            <div class="flex items-center gap-1">
+             Klinik <span id="sort-icon-klinik">⇅</span>
+            </div></th>
+           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase col-status cursor-pointer hover:bg-gray-100" onclick="toggleSort('status')">
+            <div class="flex items-center gap-1">
+             Status <span id="sort-icon-status">⇅</span>
+            </div></th>
+           <th class="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase col-bayar cursor-pointer hover:bg-gray-100" onclick="toggleSort('bayar')">
+            <div class="flex items-center gap-1">
+             Cara Bayar <span id="sort-icon-bayar">⇅</span>
+            </div></th>
+           <th class="px-3 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase col-laki cursor-pointer hover:bg-gray-100" onclick="toggleSort('laki')">
+            <div class="flex items-center justify-end gap-1">
+             Laki-laki <span id="sort-icon-laki">⇅</span>
+            </div></th>
+           <th class="px-3 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase col-perempuan cursor-pointer hover:bg-gray-100" onclick="toggleSort('perempuan')">
+            <div class="flex items-center justify-end gap-1">
+             Perempuan <span id="sort-icon-perempuan">⇅</span>
+            </div></th>
+           <th class="px-3 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase col-total cursor-pointer hover:bg-gray-100" onclick="toggleSort('total')">
+            <div class="flex items-center justify-end gap-1">
+             Total <span id="sort-icon-total">⇅</span>
+            </div></th>
           </tr>
          </thead>
          <tbody id="table-body" class="bg-white divide-y divide-gray-200">
          </tbody>
+         <tfoot class="bg-gray-100 sticky bottom-0">
+          <tr class="font-bold" id="detail-table-footer">
+           <td class="px-3 sm:px-4 py-3 text-sm text-gray-900" colspan="6">TOTAL KESELURUHAN</td>
+           <td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-right col-laki" id="footer-laki">0</td>
+           <td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-right col-perempuan" id="footer-perempuan">0</td>
+           <td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-right col-total" id="footer-total">0</td>
+          </tr>
+         </tfoot>
         </table>
        </div>
        <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
@@ -680,10 +728,22 @@
         let charts = {};
         let chartTypes = {};
         let comparisonCharts = {};
-        const ITEMS_PER_PAGE = 10;
+        let ITEMS_PER_PAGE = 15;
         let currentPage = 1;
         let searchQuery = '';
         let currentTab = 'overview';
+        let visibleColumns = {
+            periode: true,
+            klinik: true,
+            jenis: true,
+            laki: true,
+            perempuan: true,
+            bayar: true,
+            status: true,
+            total: true
+        };
+        let sortColumn = null;
+        let sortDirection = 'none'; // 'none', 'asc', 'desc'
 
         // Filter states
         let selectedTahun = new Set();
@@ -716,7 +776,7 @@
         // Load dark mode preference
         if (localStorage.getItem('darkMode') === 'enabled') {
             document.body.classList.add('dark-mode');
-            document.getElementById('dark-mode-icon').textContent = '☀️';
+            document.getElementById('dark-mode-icon').textContent = '☀���';
         }
 
         // Animated Counter
@@ -1082,7 +1142,82 @@
             
             document.getElementById('toggle-values').checked = false;
             
+            // Reset sorting
+            sortColumn = null;
+            sortDirection = 'none';
+            updateSortIcons();
+            
             applyFilters();
+        }
+
+        function toggleSort(columnName) {
+            if (sortColumn === columnName) {
+                // Cycle through: none -> asc -> desc -> none
+                if (sortDirection === 'none') {
+                    sortDirection = 'asc';
+                } else if (sortDirection === 'asc') {
+                    sortDirection = 'desc';
+                } else {
+                    sortDirection = 'none';
+                    sortColumn = null;
+                }
+            } else {
+                sortColumn = columnName;
+                sortDirection = 'asc';
+            }
+            
+            updateSortIcons();
+            currentPage = 1;
+            updateTable();
+        }
+
+        function updateSortIcons() {
+            // Reset all icons
+            const columns = ['periode', 'jenis', 'klinik', 'status', 'bayar', 'laki', 'perempuan', 'total'];
+            columns.forEach(function(col) {
+                const icon = document.getElementById('sort-icon-' + col);
+                if (icon) {
+                    if (sortColumn === col) {
+                        if (sortDirection === 'asc') {
+                            icon.textContent = '↑';
+                            icon.style.color = '#3B82F6';
+                        } else if (sortDirection === 'desc') {
+                            icon.textContent = '↓';
+                            icon.style.color = '#3B82F6';
+                        }
+                    } else {
+                        icon.textContent = '⇅';
+                        icon.style.color = '';
+                    }
+                }
+            });
+        }
+
+        function sortData(data) {
+            if (!sortColumn || sortDirection === 'none') {
+                return data;
+            }
+            
+            return data.slice().sort(function(a, b) {
+                let valA, valB;
+                
+                if (sortColumn === 'laki' || sortColumn === 'perempuan' || sortColumn === 'total') {
+                    valA = a[sortColumn];
+                    valB = b[sortColumn];
+                } else {
+                    valA = a[sortColumn].toString().toLowerCase();
+                    valB = b[sortColumn].toString().toLowerCase();
+                }
+                
+                let comparison = 0;
+                if (valA > valB) {
+                    comparison = 1;
+                } else if (valA < valB) {
+                    comparison = -1;
+                }
+                
+                return sortDirection === 'asc' ? comparison : -comparison;
+            });
         }
 
         async function fetchData() {
@@ -1666,17 +1801,66 @@
 
         function updateTable() {
             const searchLower = searchQuery.toLowerCase();
-            let displayData = filteredData;
             
+            // Group data based on visible columns
+            const groupedData = {};
+            
+            filteredData.forEach(function(d) {
+                // Build key based on visible columns
+                let keyParts = [];
+                if (visibleColumns.periode) keyParts.push(d.periode);
+                if (visibleColumns.jenis) keyParts.push(d.jenisPelayanan);
+                if (visibleColumns.klinik) keyParts.push(d.pelayanan);
+                if (visibleColumns.status) keyParts.push(d.jaminan);
+                if (visibleColumns.bayar) keyParts.push(d.caraBayar);
+                
+                const key = keyParts.join('|');
+                
+                if (!groupedData[key]) {
+                    groupedData[key] = {
+                        periode: d.periode,
+                        jenis: d.jenisPelayanan,
+                        klinik: d.pelayanan,
+                        status: d.jaminan,
+                        bayar: d.caraBayar,
+                        laki: 0,
+                        perempuan: 0,
+                        total: 0
+                    };
+                }
+                
+                if (d.kelamin === 'L' || d.kelamin === 'Laki-laki') {
+                    groupedData[key].laki += d.jumlah;
+                } else if (d.kelamin === 'P' || d.kelamin === 'Perempuan') {
+                    groupedData[key].perempuan += d.jumlah;
+                }
+                groupedData[key].total += d.jumlah;
+            });
+            
+            let displayData = Object.values(groupedData);
+            
+            // Apply search filter
             if (searchQuery) {
-                displayData = filteredData.filter(function(d) {
+                displayData = displayData.filter(function(d) {
                     return d.periode.toLowerCase().includes(searchLower) ||
-                    d.pelayanan.toLowerCase().includes(searchLower) ||
-                    d.jenisPelayanan.toLowerCase().includes(searchLower) ||
-                    d.kelamin.toLowerCase().includes(searchLower) ||
-                    d.caraBayar.toLowerCase().includes(searchLower);
+                           d.jenis.toLowerCase().includes(searchLower) ||
+                           d.klinik.toLowerCase().includes(searchLower) ||
+                           d.status.toLowerCase().includes(searchLower) ||
+                           d.bayar.toLowerCase().includes(searchLower);
                 });
             }
+            
+            // Apply sorting
+            displayData = sortData(displayData);
+            
+            // Calculate totals from ALL filtered data
+            const totalLaki = displayData.reduce(function(sum, d) { return sum + d.laki; }, 0);
+            const totalPerempuan = displayData.reduce(function(sum, d) { return sum + d.perempuan; }, 0);
+            const grandTotal = displayData.reduce(function(sum, d) { return sum + d.total; }, 0);
+            
+            document.getElementById('footer-laki').textContent = totalLaki.toLocaleString('id-ID');
+            document.getElementById('footer-perempuan').textContent = totalPerempuan.toLocaleString('id-ID');
+            document.getElementById('footer-total').textContent = grandTotal.toLocaleString('id-ID');
             
             const totalItems = displayData.length;
             const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -1687,14 +1871,252 @@
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
             
-            pageData.forEach(function(d) {
-                tbody.innerHTML += '<tr class="hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 text-sm text-gray-900">' + d.periode + '</td><td class="px-3 sm:px-4 py-3 text-sm text-gray-900">' + d.pelayanan + '</td><td class="px-3 sm:px-4 py-3 text-sm text-gray-900">' + d.jenisPelayanan + '</td><td class="px-3 sm:px-4 py-3 text-sm text-gray-900">' + d.kelamin + '</td><td class="px-3 sm:px-4 py-3 text-sm text-gray-900">' + d.caraBayar + '</td><td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-right font-medium">' + d.jumlah.toLocaleString('id-ID') + '</td></tr>';
+            pageData.forEach(function(d, index) {
+                const rowNumber = start + index + 1;
+                let row = '<tr class="hover:bg-gray-50">';
+                row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-center">' + rowNumber + '</td>';
+                if (visibleColumns.periode) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 col-periode">' + d.periode + '</td>';
+                if (visibleColumns.jenis) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 col-jenis">' + d.jenis + '</td>';
+                if (visibleColumns.klinik) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 col-klinik">' + d.klinik + '</td>';
+                if (visibleColumns.status) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 col-status">' + d.status + '</td>';
+                if (visibleColumns.bayar) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 col-bayar">' + d.bayar + '</td>';
+                if (visibleColumns.laki) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-right font-medium col-laki">' + d.laki.toLocaleString('id-ID') + '</td>';
+                if (visibleColumns.perempuan) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-right font-medium col-perempuan">' + d.perempuan.toLocaleString('id-ID') + '</td>';
+                if (visibleColumns.total) row += '<td class="px-3 sm:px-4 py-3 text-sm text-gray-900 text-right font-bold col-total">' + d.total.toLocaleString('id-ID') + '</td>';
+                row += '</tr>';
+                tbody.innerHTML += row;
             });
             
             document.getElementById('table-info').textContent = totalItems > 0 ? (start + 1) + '-' + Math.min(end, totalItems) + ' dari ' + totalItems + ' data' : '0 data';
             
             document.getElementById('btn-prev').disabled = currentPage === 1;
             document.getElementById('btn-next').disabled = currentPage >= totalPages;
+        }
+
+        function toggleColumn(columnName) {
+            visibleColumns[columnName] = !visibleColumns[columnName];
+            
+            // Toggle column visibility in header
+            const headerCols = document.querySelectorAll('.col-' + columnName);
+            headerCols.forEach(function(col) {
+                col.style.display = visibleColumns[columnName] ? '' : 'none';
+            });
+            
+            // Update footer colspan
+            updateFooterColspan();
+            
+            // Refresh table
+            updateTable();
+        }
+
+        function updateFooterColspan() {
+            const firstFooterCell = document.querySelector('#detail-table-footer td:first-child');
+            
+            // Count visible columns before laki-laki (plus 1 for No column)
+            let colspanCount = 1; // Start with 1 for No column
+            if (visibleColumns.periode) colspanCount++;
+            if (visibleColumns.jenis) colspanCount++;
+            if (visibleColumns.klinik) colspanCount++;
+            if (visibleColumns.status) colspanCount++;
+            if (visibleColumns.bayar) colspanCount++;
+            
+            if (colspanCount > 0) {
+                firstFooterCell.setAttribute('colspan', colspanCount);
+            } else {
+                firstFooterCell.removeAttribute('colspan');
+            }
+        }
+
+        function changeItemsPerPage() {
+            ITEMS_PER_PAGE = parseInt(document.getElementById('items-per-page').value);
+            currentPage = 1;
+            updateTable();
+        }
+
+        function exportDetailToCSV() {
+            // Group data based on visible columns
+            const groupedData = {};
+            
+            filteredData.forEach(function(d) {
+                let keyParts = [];
+                if (visibleColumns.periode) keyParts.push(d.periode);
+                if (visibleColumns.jenis) keyParts.push(d.jenisPelayanan);
+                if (visibleColumns.klinik) keyParts.push(d.pelayanan);
+                if (visibleColumns.status) keyParts.push(d.jaminan);
+                if (visibleColumns.bayar) keyParts.push(d.caraBayar);
+                
+                const key = keyParts.join('|');
+                
+                if (!groupedData[key]) {
+                    groupedData[key] = {
+                        periode: d.periode,
+                        jenis: d.jenisPelayanan,
+                        klinik: d.pelayanan,
+                        status: d.jaminan,
+                        bayar: d.caraBayar,
+                        laki: 0,
+                        perempuan: 0,
+                        total: 0
+                    };
+                }
+                
+                if (d.kelamin === 'L' || d.kelamin === 'Laki-laki') {
+                    groupedData[key].laki += d.jumlah;
+                } else if (d.kelamin === 'P' || d.kelamin === 'Perempuan') {
+                    groupedData[key].perempuan += d.jumlah;
+                }
+                groupedData[key].total += d.jumlah;
+            });
+            
+            let displayData = Object.values(groupedData);
+            
+            // Apply sorting if active
+            displayData = sortData(displayData);
+            
+            let csv = [];
+            let headers = ['No'];
+            
+            if (visibleColumns.periode) headers.push('Periode');
+            if (visibleColumns.jenis) headers.push('Jenis Pelayanan');
+            if (visibleColumns.klinik) headers.push('Klinik');
+            if (visibleColumns.status) headers.push('Status');
+            if (visibleColumns.bayar) headers.push('Cara Bayar');
+            if (visibleColumns.laki) headers.push('Laki-laki');
+            if (visibleColumns.perempuan) headers.push('Perempuan');
+            if (visibleColumns.total) headers.push('Total');
+            
+            csv.push(headers);
+            
+            displayData.forEach(function(d, index) {
+                let row = [index + 1];
+                if (visibleColumns.periode) row.push(d.periode);
+                if (visibleColumns.jenis) row.push(d.jenis);
+                if (visibleColumns.klinik) row.push(d.klinik);
+                if (visibleColumns.status) row.push(d.status);
+                if (visibleColumns.bayar) row.push(d.bayar);
+                if (visibleColumns.laki) row.push(d.laki);
+                if (visibleColumns.perempuan) row.push(d.perempuan);
+                if (visibleColumns.total) row.push(d.total);
+                csv.push(row);
+            });
+            
+            // Add totals
+            const totalLaki = displayData.reduce(function(sum, d) { return sum + d.laki; }, 0);
+            const totalPerempuan = displayData.reduce(function(sum, d) { return sum + d.perempuan; }, 0);
+            const grandTotal = displayData.reduce(function(sum, d) { return sum + d.total; }, 0);
+            
+            let totalRow = ['TOTAL'];
+            if (visibleColumns.periode) totalRow.push('');
+            if (visibleColumns.jenis) totalRow.push('');
+            if (visibleColumns.klinik) totalRow.push('');
+            if (visibleColumns.status) totalRow.push('');
+            if (visibleColumns.bayar) totalRow.push('');
+            if (visibleColumns.laki) totalRow.push(totalLaki);
+            if (visibleColumns.perempuan) totalRow.push(totalPerempuan);
+            if (visibleColumns.total) totalRow.push(grandTotal);
+            
+            csv.push(totalRow);
+            
+            const csvContent = csv.map(function(row) { return row.join(','); }).join('\n');
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'data_detail_' + new Date().getTime() + '.csv';
+            link.click();
+        }
+
+        function exportDetailToPDF() {
+            // Group data based on visible columns
+            const groupedData = {};
+            
+            filteredData.forEach(function(d) {
+                let keyParts = [];
+                if (visibleColumns.periode) keyParts.push(d.periode);
+                if (visibleColumns.jenis) keyParts.push(d.jenisPelayanan);
+                if (visibleColumns.klinik) keyParts.push(d.pelayanan);
+                if (visibleColumns.status) keyParts.push(d.jaminan);
+                if (visibleColumns.bayar) keyParts.push(d.caraBayar);
+                
+                const key = keyParts.join('|');
+                
+                if (!groupedData[key]) {
+                    groupedData[key] = {
+                        periode: d.periode,
+                        jenis: d.jenisPelayanan,
+                        klinik: d.pelayanan,
+                        status: d.jaminan,
+                        bayar: d.caraBayar,
+                        laki: 0,
+                        perempuan: 0,
+                        total: 0
+                    };
+                }
+                
+                if (d.kelamin === 'L' || d.kelamin === 'Laki-laki') {
+                    groupedData[key].laki += d.jumlah;
+                } else if (d.kelamin === 'P' || d.kelamin === 'Perempuan') {
+                    groupedData[key].perempuan += d.jumlah;
+                }
+                groupedData[key].total += d.jumlah;
+            });
+            
+            let displayData = Object.values(groupedData);
+            
+            // Apply sorting if active
+            displayData = sortData(displayData);
+            
+            let tableHTML = '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:10px;"><thead><tr style="background-color:#f3f4f6;">';
+            
+            tableHTML += '<th>No</th>';
+            if (visibleColumns.periode) tableHTML += '<th>Periode</th>';
+            if (visibleColumns.jenis) tableHTML += '<th>Jenis Pelayanan</th>';
+            if (visibleColumns.klinik) tableHTML += '<th>Klinik</th>';
+            if (visibleColumns.status) tableHTML += '<th>Status</th>';
+            if (visibleColumns.bayar) tableHTML += '<th>Cara Bayar</th>';
+            if (visibleColumns.laki) tableHTML += '<th>Laki-laki</th>';
+            if (visibleColumns.perempuan) tableHTML += '<th>Perempuan</th>';
+            if (visibleColumns.total) tableHTML += '<th>Total</th>';
+            
+            tableHTML += '</tr></thead><tbody>';
+            
+            displayData.forEach(function(d, index) {
+                tableHTML += '<tr>';
+                tableHTML += '<td style="text-align:center;">' + (index + 1) + '</td>';
+                if (visibleColumns.periode) tableHTML += '<td>' + d.periode + '</td>';
+                if (visibleColumns.jenis) tableHTML += '<td>' + d.jenis + '</td>';
+                if (visibleColumns.klinik) tableHTML += '<td>' + d.klinik + '</td>';
+                if (visibleColumns.status) tableHTML += '<td>' + d.status + '</td>';
+                if (visibleColumns.bayar) tableHTML += '<td>' + d.bayar + '</td>';
+                if (visibleColumns.laki) tableHTML += '<td style="text-align:right;">' + d.laki.toLocaleString('id-ID') + '</td>';
+                if (visibleColumns.perempuan) tableHTML += '<td style="text-align:right;">' + d.perempuan.toLocaleString('id-ID') + '</td>';
+                if (visibleColumns.total) tableHTML += '<td style="text-align:right;font-weight:bold;">' + d.total.toLocaleString('id-ID') + '</td>';
+                tableHTML += '</tr>';
+            });
+            
+            // Add totals
+            const totalLaki = displayData.reduce(function(sum, d) { return sum + d.laki; }, 0);
+            const totalPerempuan = displayData.reduce(function(sum, d) { return sum + d.perempuan; }, 0);
+            const grandTotal = displayData.reduce(function(sum, d) { return sum + d.total; }, 0);
+            
+            let colspanCount = 1;
+            if (visibleColumns.periode) colspanCount++;
+            if (visibleColumns.jenis) colspanCount++;
+            if (visibleColumns.klinik) colspanCount++;
+            if (visibleColumns.status) colspanCount++;
+            if (visibleColumns.bayar) colspanCount++;
+            
+            tableHTML += '<tr style="background-color:#e5e7eb;font-weight:bold;">';
+            tableHTML += '<td colspan="' + colspanCount + '">TOTAL KESELURUHAN</td>';
+            if (visibleColumns.laki) tableHTML += '<td style="text-align:right;">' + totalLaki.toLocaleString('id-ID') + '</td>';
+            if (visibleColumns.perempuan) tableHTML += '<td style="text-align:right;">' + totalPerempuan.toLocaleString('id-ID') + '</td>';
+            if (visibleColumns.total) tableHTML += '<td style="text-align:right;">' + grandTotal.toLocaleString('id-ID') + '</td>';
+            tableHTML += '</tr>';
+            
+            tableHTML += '</tbody></table>';
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Data Detail Kunjungan Pasien</title><style>body { margin: 0; padding: 20px; font-family: Arial, sans-serif; } h2 { text-align: center; margin-bottom: 20px; } @media print { body { padding: 10px; } }</style></head><body><h2>Data Detail Kunjungan Pasien</h2>' + tableHTML + '<script>window.onload = function() { window.print(); }<\/script></body></html>');
+            printWindow.document.close();
         }
 
         function updatePelayananTab() {
@@ -2160,5 +2582,5 @@
 
         fetchData();
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b8c2a57f60ace21',t:'MTc2NzU0NDY5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b93c00cc5db5724',t:'MTc2NzYyNDIzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
